@@ -1,0 +1,146 @@
+import { z } from 'zod';
+
+/**
+ * 認証方式の種類
+ */
+export enum AuthType {
+  NONE = 'none',
+  API_KEY_QUERY = 'api_key_query',
+  API_KEY_HEADER = 'api_key_header',
+  BEARER_TOKEN = 'bearer_token',
+}
+
+/**
+ * APIプロファイルのスキーマ
+ */
+export const ApiProfileSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'プロファイル名は必須です'),
+  baseUrl: z.string().url('有効なURLを入力してください'),
+  authType: z.nativeEnum(AuthType),
+  apiKey: z.string().optional(),
+  apiKeyName: z.string().optional(), // ヘッダー名やクエリパラメータ名
+  envVarKey: z.string(), // 環境変数名（BOT_API_KEY_01など）
+  envVarUrl: z.string().optional(), // ベースURL用環境変数名
+});
+
+export type ApiProfile = z.infer<typeof ApiProfileSchema>;
+
+/**
+ * スラッシュコマンドのオプション
+ */
+export const CommandOptionSchema = z.object({
+  name: z.string().min(1, 'オプション名は必須です'),
+  description: z.string().min(1, '説明は必須です'),
+  type: z.enum(['string', 'integer', 'boolean', 'user', 'channel', 'role']),
+  required: z.boolean(),
+});
+
+export type CommandOption = z.infer<typeof CommandOptionSchema>;
+
+/**
+ * 応答タイプ
+ */
+export enum ResponseType {
+  STATIC_TEXT = 'static_text',
+  API_CALL = 'api_call',
+}
+
+/**
+ * スラッシュコマンドのスキーマ
+ */
+export const SlashCommandSchema = z.object({
+  id: z.string(),
+  name: z.string()
+    .min(1, 'コマンド名は必須です')
+    .regex(/^[a-z0-9_-]+$/, 'コマンド名は小文字、数字、ハイフン、アンダースコアのみ使用できます'),
+  description: z.string().min(1, '説明は必須です').max(100, '説明は100文字以内にしてください'),
+  options: z.array(CommandOptionSchema).optional(),
+  responseType: z.nativeEnum(ResponseType),
+  staticText: z.string().optional(),
+  apiProfileId: z.string().optional(),
+  apiEndpoint: z.string().optional(),
+  codeSnippet: z.string().optional(), // カスタムロジック
+});
+
+export type SlashCommand = z.infer<typeof SlashCommandSchema>;
+
+/**
+ * リポジトリ設定のスキーマ
+ */
+export const RepositoryConfigSchema = z.object({
+  name: z.string()
+    .min(1, 'リポジトリ名は必須です')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'リポジトリ名は英数字、ハイフン、アンダースコアのみ使用できます'),
+  branch: z.string().min(1, 'ブランチ名は必須です'),
+  description: z.string().optional(),
+  isPrivate: z.boolean(),
+});
+
+export type RepositoryConfig = z.infer<typeof RepositoryConfigSchema>;
+
+/**
+ * Discord Bot設定のスキーマ
+ */
+export const BotConfigSchema = z.object({
+  name: z.string().min(1, 'Bot名は必須です'),
+  description: z.string().optional(),
+  applicationId: z.string().optional(),
+  publicKey: z.string().optional(),
+});
+
+export type BotConfig = z.infer<typeof BotConfigSchema>;
+
+/**
+ * プロジェクト全体の設定
+ */
+export const ProjectConfigSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  repository: RepositoryConfigSchema,
+  botConfig: BotConfigSchema,
+  apiProfiles: z.array(ApiProfileSchema),
+  commands: z.array(SlashCommandSchema),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
+
+/**
+ * 環境変数情報
+ */
+export interface EnvVariable {
+  key: string;
+  value: string;
+  description: string;
+}
+
+/**
+ * 生成されるファイル情報
+ */
+export interface GeneratedFile {
+  path: string;
+  content: string;
+}
+
+/**
+ * コード生成結果
+ */
+export interface GenerationResult {
+  files: GeneratedFile[];
+  envVariables: EnvVariable[];
+  setupInstructions: string;
+}
+
+/**
+ * GitHub OAuth情報
+ */
+export interface GitHubUser {
+  id: number;
+  login: string;
+  name: string | null;
+  email: string | null;
+  avatar_url: string;
+  access_token: string;
+}
