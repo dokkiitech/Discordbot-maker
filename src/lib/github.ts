@@ -62,7 +62,7 @@ export async function createGitHubRepository(
     name,
     description,
     private: isPrivate,
-    auto_init: false,
+    auto_init: true, // 初期READMEを作成してリポジトリを初期化
   });
 
   return {
@@ -106,9 +106,9 @@ export async function commitFilesToGitHub(
       });
       treeSha = commitData.tree.sha;
     } catch (error: any) {
-      // ブランチが存在しない場合は新規作成
-      if (error.status === 404) {
-        console.log('Branch does not exist, will create new one');
+      // ブランチが存在しない場合、または空のリポジトリの場合は新規作成
+      if (error.status === 404 || error.status === 409) {
+        console.log('Branch does not exist or repository is empty, will create new branch');
       } else {
         throw error;
       }
