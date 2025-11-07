@@ -11,6 +11,14 @@ export enum AuthType {
 }
 
 /**
+ * Bot デプロイメントタイプ
+ */
+export enum BotDeploymentType {
+  INTERACTIONS_ENDPOINT = 'interactions_endpoint', // Cloudflare Workers (HTTP-based)
+  GATEWAY = 'gateway', // discord.js (WebSocket-based)
+}
+
+/**
  * APIプロファイルのスキーマ
  */
 export const ApiProfileSchema = z.object({
@@ -87,6 +95,8 @@ export const BotConfigSchema = z.object({
   description: z.string().optional(),
   applicationId: z.string().optional(),
   publicKey: z.string().optional(),
+  botToken: z.string().optional(), // Gateway botで使用
+  deploymentType: z.nativeEnum(BotDeploymentType).default(BotDeploymentType.INTERACTIONS_ENDPOINT),
 });
 
 export type BotConfig = z.infer<typeof BotConfigSchema>;

@@ -16,6 +16,7 @@ import type {
   ApiProfile,
   SlashCommand,
 } from '@/lib/types';
+import { BotDeploymentType } from '@/lib/types';
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -35,6 +36,8 @@ export default function DashboardPage() {
     description: '',
     applicationId: '',
     publicKey: '',
+    botToken: '',
+    deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
   });
 
   const [apiProfiles, setApiProfiles] = useState<ApiProfile[]>([]);

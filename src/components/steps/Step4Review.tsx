@@ -5,6 +5,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Download, Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
 import type { RepositoryConfig, BotConfig, ApiProfile, SlashCommand } from '@/lib/types';
+import { BotDeploymentType } from '@/lib/types';
 import { downloadFile, generateEnvFile } from '@/lib/utils';
 
 interface Step4ReviewProps {
@@ -44,11 +45,14 @@ export function Step4Review({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('コード生成に失敗しました');
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        // エラーメッセージを表示
+        const errorMessage = result.error || 'コード生成に失敗しました';
+        alert(errorMessage);
+        return;
+      }
 
       setRepoUrl(result.repoUrl);
       setEnvVariables(result.envVariables);
@@ -81,6 +85,8 @@ export function Step4Review({
   };
 
   if (generationComplete) {
+    const isGateway = botConfig.deploymentType === BotDeploymentType.GATEWAY;
+
     return (
       <Card>
         <CardHeader>
@@ -118,18 +124,34 @@ export function Step4Review({
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-gray-700 mb-3">
-                Botをデプロイする前に、以下の環境変数をCloudflare Workersに設定してください。
+                {isGateway
+                  ? 'Botをデプロイする前に、以下の環境変数を設定してください。'
+                  : 'Botをデプロイする前に、以下の環境変数をCloudflare Workersに設定してください。'
+                }
               </p>
 
-              <div className="space-y-2 text-sm">
-                <p className="font-semibold">設定方法:</p>
-                <ol className="list-decimal list-inside space-y-1 text-gray-700">
-                  <li>Cloudflare Dashboardにログイン</li>
-                  <li>Workers & Pages → あなたのWorkerを選択</li>
-                  <li>Settings → Variables → Edit variables</li>
-                  <li>以下の変数を追加</li>
-                </ol>
-              </div>
+              {!isGateway && (
+                <div className="space-y-2 text-sm">
+                  <p className="font-semibold">設定方法:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                    <li>Cloudflare Dashboardにログイン</li>
+                    <li>Workers & Pages → あなたのWorkerを選択</li>
+                    <li>Settings → Variables → Edit variables</li>
+                    <li>以下の変数を追加</li>
+                  </ol>
+                </div>
+              )}
+              {isGateway && (
+                <div className="space-y-2 text-sm">
+                  <p className="font-semibold">設定方法:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                    <li>リポジトリをクローン</li>
+                    <li>プロジェクトルートに<code className="bg-white px-1 rounded">.env</code>ファイルを作成</li>
+                    <li>以下の環境変数を記載</li>
+                    <li>デプロイ先（Railway/Render等）で同じ環境変数を設定</li>
+                  </ol>
+                </div>
+              )}
             </div>
 
             {/* 環境変数テーブル */}
@@ -162,14 +184,16 @@ export function Step4Review({
                     <Download className="w-4 h-4 mr-1" />
                     .envダウンロード
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={handleDownloadWranglerEnv}
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    .dev.varsダウンロード
-                  </Button>
+                  {!isGateway && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={handleDownloadWranglerEnv}
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      .dev.varsダウンロード
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -204,12 +228,76 @@ export function Step4Review({
             {/* デプロイ手順 */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">デプロイ手順</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                <li>リポジトリをクローン: <code className="bg-white px-1 rounded">git clone {repoUrl}</code></li>
-                <li>依存関係をインストール: <code className="bg-white px-1 rounded">npm install</code></li>
-                <li>環境変数を設定（上記参照）</li>
-                <li>デプロイ: <code className="bg-white px-1 rounded">npx wrangler deploy</code></li>
-              </ol>
+              {!isGateway ? (
+                <>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 mb-3">
+                    <li>リポジトリをクローン: <code className="bg-white px-1 rounded">git clone {repoUrl}</code></li>
+                    <li>依存関係をインストール: <code className="bg-white px-1 rounded">npm install</code></li>
+                    <li>環境変数を設定（上記参照）</li>
+                    <li>デプロイ: <code className="bg-white px-1 rounded">npx wrangler deploy</code></li>
+                    <li>Discord Developer Portal で Interactions Endpoint URL を設定</li>
+                    <li>デプロイしたURLの<code className="bg-white px-1 rounded">/register?token=</code>エンドポイントにアクセスしてコマンド登録</li>
+                  </ol>
+                  <p className="text-xs text-gray-600 mt-2">
+                    ⚠️ 注意: Botは「オフライン」と表示されますが、スラッシュコマンドは正常に動作します。
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="font-semibold text-sm mb-2">基本的な手順:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+                        <li>リポジトリをクローン: <code className="bg-white px-1 rounded">git clone {repoUrl}</code></li>
+                        <li>依存関係をインストール: <code className="bg-white px-1 rounded">npm install</code></li>
+                        <li><code className="bg-white px-1 rounded">.env</code>ファイルを作成して環境変数を設定（上記参照）</li>
+                        <li>ビルド: <code className="bg-white px-1 rounded">npm run build</code></li>
+                        <li>ローカルでテスト: <code className="bg-white px-1 rounded">npm run dev</code></li>
+                      </ol>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-sm mb-2">デプロイ方法:</p>
+                      <div className="space-y-3">
+                        <div className="bg-white rounded p-3 border border-blue-200">
+                          <p className="font-semibold text-sm text-blue-900 mb-1">Railway / Render (推奨)</p>
+                          <ul className="text-xs text-gray-700 space-y-1">
+                            <li>• GitHubリポジトリをインポート</li>
+                            <li>• 環境変数を設定</li>
+                            <li>• 自動デプロイ完了</li>
+                          </ul>
+                        </div>
+
+                        <div className="bg-white rounded p-3 border border-blue-200">
+                          <p className="font-semibold text-sm text-blue-900 mb-1">VPS/EC2 + PM2</p>
+                          <div className="text-xs text-gray-700 space-y-1">
+                            <p>PM2を使用した本番環境管理:</p>
+                            <pre className="bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+{`# PM2をインストール
+npm install -g pm2
+
+# Bot起動（プロセス名: ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}）
+pm2 start npm --name "${botConfig.name.toLowerCase().replace(/\s+/g, '-')}" -- start
+
+# 自動起動設定
+pm2 startup
+pm2 save
+
+# 管理コマンド
+pm2 status              # ステータス確認
+pm2 logs ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # ログ確認
+pm2 restart ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # 再起動`}
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-600 mt-3">
+                    ✅ 起動すると、Botが「オンライン」として表示され、スラッシュコマンドが自動登録されます。
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </CardBody>

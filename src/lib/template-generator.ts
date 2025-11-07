@@ -7,12 +7,33 @@ import type {
   EnvVariable,
   GenerationResult,
 } from './types';
-import { AuthType, ResponseType } from './types';
+import { AuthType, ResponseType, BotDeploymentType } from './types';
 
 /**
  * Discord Botのコードを生成
  */
 export function generateBotCode(
+  botConfig: BotConfig,
+  apiProfiles: ApiProfile[],
+  commands: SlashCommand[]
+): GenerationResult {
+  const files: GeneratedFile[] = [];
+  const envVariables: EnvVariable[] = [];
+
+  // デプロイメントタイプに応じて分岐
+  const deploymentType = botConfig.deploymentType || BotDeploymentType.INTERACTIONS_ENDPOINT;
+
+  if (deploymentType === BotDeploymentType.INTERACTIONS_ENDPOINT) {
+    return generateInteractionsEndpointBot(botConfig, apiProfiles, commands);
+  } else {
+    return generateGatewayBot(botConfig, apiProfiles, commands);
+  }
+}
+
+/**
+ * Interactions Endpoint Bot (Cloudflare Workers) を生成
+ */
+function generateInteractionsEndpointBot(
   botConfig: BotConfig,
   apiProfiles: ApiProfile[],
   commands: SlashCommand[]
@@ -31,6 +52,20 @@ export function generateBotCode(
     key: 'DISCORD_PUBLIC_KEY',
     value: botConfig.publicKey || 'your_discord_public_key',
     description: 'Discord Public Key',
+  });
+
+  envVariables.push({
+    key: 'DISCORD_BOT_TOKEN',
+    value: botConfig.botToken || 'your_discord_bot_token',
+    description: 'Discord Bot Token (コマンド登録用)',
+  });
+
+  // ランダムなシークレットを生成
+  const registerSecret = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  envVariables.push({
+    key: 'REGISTER_SECRET',
+    value: registerSecret,
+    description: 'コマンド登録エンドポイント用シークレット',
   });
 
   // APIプロファイルから環境変数を抽出
@@ -79,7 +114,7 @@ export function generateBotCode(
   // 5. README.md を生成
   files.push({
     path: 'README.md',
-    content: generateReadme(botConfig, envVariables),
+    content: generateReadme(botConfig, envVariables, registerSecret),
   });
 
   // 6. .gitignore を生成
@@ -88,7 +123,95 @@ export function generateBotCode(
     content: generateGitignore(),
   });
 
-  const setupInstructions = generateSetupInstructions(envVariables);
+  const setupInstructions = generateSetupInstructions(envVariables, registerSecret);
+
+  return {
+    files,
+    envVariables,
+    setupInstructions,
+  };
+}
+
+/**
+ * Gateway Bot (discord.js) を生成
+ */
+function generateGatewayBot(
+  botConfig: BotConfig,
+  apiProfiles: ApiProfile[],
+  commands: SlashCommand[]
+): GenerationResult {
+  const files: GeneratedFile[] = [];
+  const envVariables: EnvVariable[] = [];
+
+  // 環境変数を抽出
+  envVariables.push({
+    key: 'DISCORD_BOT_TOKEN',
+    value: botConfig.botToken || 'your_discord_bot_token',
+    description: 'Discord Bot Token',
+  });
+
+  envVariables.push({
+    key: 'DISCORD_APPLICATION_ID',
+    value: botConfig.applicationId || 'your_discord_application_id',
+    description: 'Discord Application ID',
+  });
+
+  // APIプロファイルから環境変数を抽出
+  apiProfiles.forEach((profile) => {
+    if (profile.authType !== AuthType.NONE && profile.apiKey) {
+      envVariables.push({
+        key: profile.envVarKey,
+        value: profile.apiKey,
+        description: `API Key for ${profile.name}`,
+      });
+    }
+
+    if (profile.envVarUrl) {
+      envVariables.push({
+        key: profile.envVarUrl,
+        value: profile.baseUrl,
+        description: `Base URL for ${profile.name}`,
+      });
+    }
+  });
+
+  // 1. index.ts を生成（discord.js版）
+  files.push({
+    path: 'src/index.ts',
+    content: generateGatewayIndexTs(botConfig, apiProfiles, commands),
+  });
+
+  // 2. package.json を生成（discord.js版）
+  files.push({
+    path: 'package.json',
+    content: generateGatewayPackageJson(botConfig),
+  });
+
+  // 3. tsconfig.json を生成
+  files.push({
+    path: 'tsconfig.json',
+    content: generateGatewayTsConfig(),
+  });
+
+  // 4. .env.example を生成
+  files.push({
+    path: '.env.example',
+    content: generateEnvExample(envVariables),
+  });
+
+  // 5. README.md を生成
+  files.push({
+    path: 'README.md',
+    content: generateGatewayReadme(botConfig, envVariables),
+  });
+
+  // 6. .gitignore を生成
+  files.push({
+    path: '.gitignore',
+    content: generateGitignore(),
+  });
+
+  const setupInstructions = generateGatewaySetupInstructions(envVariables);
 
   return {
     files,
@@ -125,6 +248,8 @@ function generateIndexTs(
 export interface Env {
   DISCORD_APPLICATION_ID: string;
   DISCORD_PUBLIC_KEY: string;
+  DISCORD_BOT_TOKEN: string;
+  REGISTER_SECRET: string;
 ${apiProfiles
   .map(
     (p) => `  ${p.envVarKey}: string;
@@ -135,6 +260,30 @@ ${apiProfiles
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    // コマンド登録エンドポイント
+    if (url.pathname === '/register') {
+      const token = url.searchParams.get('token');
+      
+      if (token !== env.REGISTER_SECRET) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+
+      try {
+        await registerCommands(env);
+        return new Response('✅ コマンド登録が完了しました！\\n\\nDiscordでスラッシュコマンドが使用可能になりました。', {
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
+      } catch (error) {
+        console.error('Failed to register commands:', error);
+        return new Response('❌ コマンド登録に失敗しました: ' + (error as Error).message, { 
+          status: 500,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
+      }
+    }
+
     // Verify Discord request
     const signature = request.headers.get('X-Signature-Ed25519');
     const timestamp = request.headers.get('X-Signature-Timestamp');
@@ -181,8 +330,8 @@ ${commands
 
 ${commandHandlers}
 
-// Register commands (run this once)
-export async function registerCommands(env: Env): Promise<void> {
+// コマンド登録関数
+async function registerCommands(env: Env): Promise<void> {
   const commands = [
 ${commandDefinitions}
   ];
@@ -193,14 +342,15 @@ ${commandDefinitions}
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: \`Bot YOUR_BOT_TOKEN\`,
+        Authorization: \`Bot \${env.DISCORD_BOT_TOKEN}\`,
       },
       body: JSON.stringify(commands),
     }
   );
 
   if (!response.ok) {
-    console.error('Failed to register commands:', await response.text());
+    const errorText = await response.text();
+    throw new Error(\`Discord API error: \${response.status} - \${errorText}\`);
   }
 }
 `;
@@ -372,7 +522,7 @@ function generateTsConfig(): string {
 /**
  * README.md を生成
  */
-function generateReadme(botConfig: BotConfig, envVariables: EnvVariable[]): string {
+function generateReadme(botConfig: BotConfig, envVariables: EnvVariable[], registerSecret: string): string {
   return `# ${botConfig.name}
 
 ${botConfig.description || 'Discord Bot powered by Cloudflare Workers'}
@@ -415,6 +565,16 @@ npm run deploy
 2. あなたのアプリケーションを選択
 3. Bot → Interactions Endpoint URLに、デプロイしたWorkerのURLを設定
 
+### 5. スラッシュコマンドの登録
+
+デプロイ後、以下のURLにアクセスしてスラッシュコマンドを登録してください:
+
+\`\`\`
+https://your-worker-url.workers.dev/register?token=${registerSecret}
+\`\`\`
+
+**重要:** このURLは1回だけアクセスすれば十分です。成功すると「✅ コマンド登録が完了しました！」と表示されます。
+
 ## 開発
 
 ローカル開発サーバーを起動:
@@ -446,7 +606,7 @@ dist/
 /**
  * セットアップ手順を生成
  */
-function generateSetupInstructions(envVariables: EnvVariable[]): string {
+function generateSetupInstructions(envVariables: EnvVariable[], registerSecret: string): string {
   return `# Discord Bot セットアップ手順
 
 ## 1. リポジトリのクローン
@@ -470,6 +630,16 @@ ${envVariables.map((env) => `### ${env.key}\n${env.description}\n値: \`${env.va
 \`\`\`bash
 npm run deploy
 \`\`\`
+
+## 5. スラッシュコマンドの登録
+
+デプロイ後、以下のURLにブラウザでアクセスしてスラッシュコマンドを登録してください:
+
+\`\`\`
+https://your-worker-url.workers.dev/register?token=${registerSecret}
+\`\`\`
+
+成功すると「✅ コマンド登録が完了しました！」と表示されます。
 `;
 }
 
@@ -478,4 +648,431 @@ npm run deploy
  */
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Gateway Bot用のindex.ts を生成 (discord.js)
+ */
+function generateGatewayIndexTs(
+  botConfig: BotConfig,
+  apiProfiles: ApiProfile[],
+  commands: SlashCommand[]
+): string {
+  const commandHandlers = commands
+    .map((cmd) => generateGatewayCommandHandler(cmd, apiProfiles))
+    .join('\n\n');
+
+  const commandDefinitions = commands
+    .map(
+      (cmd) => `  {
+    name: '${cmd.name}',
+    description: '${cmd.description}',
+  }`
+    )
+    .join(',\n');
+
+  return `import { Client, GatewayIntentBits, REST, Routes, ChatInputCommandInteraction } from 'discord.js';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds],
+});
+
+// コマンド定義
+const commands = [
+${commandDefinitions}
+];
+
+// コマンドハンドラー
+${commandHandlers}
+
+client.on('ready', async () => {
+  console.log(\`✅ Logged in as \${client.user?.tag}!\`);
+  
+  // スラッシュコマンドを登録
+  try {
+    console.log('🔄 Registering slash commands...');
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN!);
+    
+    await rest.put(
+      Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!),
+      { body: commands }
+    );
+    
+    console.log('✅ Successfully registered slash commands!');
+  } catch (error) {
+    console.error('❌ Error registering commands:', error);
+  }
+});
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const { commandName } = interaction;
+
+  try {
+    switch (commandName) {
+${commands.map((cmd) => `      case '${cmd.name}':\n        await handle${capitalize(cmd.name)}(interaction);\n        break;`).join('\n')}
+      default:
+        await interaction.reply({ content: 'Unknown command', ephemeral: true });
+    }
+  } catch (error) {
+    console.error(\`Error handling command \${commandName}:\`, error);
+    const errorMessage = { content: 'エラーが発生しました。', ephemeral: true };
+    
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(errorMessage);
+    } else {
+      await interaction.reply(errorMessage);
+    }
+  }
+});
+
+client.login(process.env.DISCORD_BOT_TOKEN);
+`;
+}
+
+/**
+ * Gateway Bot用のコマンドハンドラーを生成
+ */
+function generateGatewayCommandHandler(
+  command: SlashCommand,
+  apiProfiles: ApiProfile[]
+): string {
+  const functionName = `handle${capitalize(command.name)}`;
+
+  if (command.responseType === ResponseType.STATIC_TEXT) {
+    return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
+  await interaction.reply('${command.staticText || 'Hello from ' + command.name}');
+}`;
+  }
+
+  // API Call
+  const profile = apiProfiles.find((p) => p.id === command.apiProfileId);
+  if (!profile) {
+    return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
+  await interaction.reply('API profile not configured');
+}`;
+  }
+
+  // API呼び出しロジック
+  let authHeader = '';
+  let urlParams = '';
+
+  if (profile.authType === AuthType.API_KEY_HEADER) {
+    authHeader = `headers['${profile.apiKeyName}'] = process.env.${profile.envVarKey}!;`;
+  } else if (profile.authType === AuthType.BEARER_TOKEN) {
+    authHeader = `headers['Authorization'] = \`Bearer \${process.env.${profile.envVarKey}}\`;`;
+  } else if (profile.authType === AuthType.API_KEY_QUERY) {
+    urlParams = `url.searchParams.set('${profile.apiKeyName}', process.env.${profile.envVarKey}!);`;
+  }
+
+  const customLogic = command.codeSnippet || `
+    const data = await apiResponse.json();
+    return JSON.stringify(data, null, 2);`;
+
+  return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
+  try {
+    await interaction.deferReply();
+
+    const baseUrl = process.env.${profile.envVarUrl}!;
+    const endpoint = '${command.apiEndpoint || ''}';
+    const url = new URL(endpoint, baseUrl);
+
+    ${urlParams}
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    ${authHeader}
+
+    const apiResponse = await fetch(url.toString(), {
+      method: 'GET',
+      headers,
+    });
+
+    if (!apiResponse.ok) {
+      throw new Error(\`API request failed: \${apiResponse.status}\`);
+    }
+
+    const responseContent = await (async () => {
+      ${customLogic}
+    })();
+
+    await interaction.editReply(responseContent);
+  } catch (error) {
+    console.error('Error in ${functionName}:', error);
+    const errorMessage = 'エラーが発生しました。もう一度お試しください。';
+    
+    if (interaction.deferred) {
+      await interaction.editReply(errorMessage);
+    } else {
+      await interaction.reply({ content: errorMessage, ephemeral: true });
+    }
+  }
+}`;
+}
+
+/**
+ * Gateway Bot用のpackage.json を生成
+ */
+function generateGatewayPackageJson(botConfig: BotConfig): string {
+  return JSON.stringify(
+    {
+      name: botConfig.name.toLowerCase().replace(/\s+/g, '-'),
+      version: '1.0.0',
+      description: botConfig.description || 'Discord Bot powered by discord.js',
+      main: 'dist/index.js',
+      scripts: {
+        build: 'tsc',
+        start: 'node dist/index.js',
+        dev: 'ts-node src/index.ts',
+      },
+      dependencies: {
+        'discord.js': '^14.14.1',
+        'dotenv': '^16.3.1',
+      },
+      devDependencies: {
+        '@types/node': '^20.10.5',
+        'typescript': '^5.3.3',
+        'ts-node': '^10.9.2',
+      },
+    },
+    null,
+    2
+  );
+}
+
+/**
+ * Gateway Bot用のtsconfig.json を生成
+ */
+function generateGatewayTsConfig(): string {
+  return JSON.stringify(
+    {
+      compilerOptions: {
+        target: 'ES2021',
+        module: 'commonjs',
+        lib: ['ES2021'],
+        outDir: './dist',
+        rootDir: './src',
+        strict: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        resolveJsonModule: true,
+      },
+      include: ['src/**/*'],
+      exclude: ['node_modules', 'dist'],
+    },
+    null,
+    2
+  );
+}
+
+/**
+ * .env.example を生成
+ */
+function generateEnvExample(envVariables: EnvVariable[]): string {
+  // 実際の値ではなくプレースホルダーを使用
+  return envVariables.map((env) => {
+    let placeholder = '';
+    if (env.key === 'DISCORD_BOT_TOKEN') {
+      placeholder = 'your_discord_bot_token_here';
+    } else if (env.key === 'DISCORD_APPLICATION_ID') {
+      placeholder = 'your_application_id_here';
+    } else {
+      placeholder = 'your_value_here';
+    }
+    return `# ${env.description}\n${env.key}=${placeholder}`;
+  }).join('\n\n') + '\n';
+}
+
+/**
+ * Gateway Bot用のREADME.md を生成
+ */
+function generateGatewayReadme(botConfig: BotConfig, envVariables: EnvVariable[]): string {
+  // 環境変数の説明を生成(実際の値は含めない)
+  const envVarDocs = envVariables.map((env) => {
+    let exampleValue = '';
+    if (env.key === 'DISCORD_BOT_TOKEN') {
+      exampleValue = 'your_discord_bot_token_here';
+    } else if (env.key === 'DISCORD_APPLICATION_ID') {
+      exampleValue = 'your_application_id_here';
+    } else {
+      exampleValue = 'your_value_here';
+    }
+    return `\`\`\`\n${env.key}=${exampleValue}\n\`\`\`\n${env.description}`;
+  }).join('\n\n');
+
+  // PM2用のプロセス名を生成（bot名をケバブケースに変換）
+  const processName = botConfig.name.toLowerCase().replace(/\s+/g, '-');
+
+  return `# ${botConfig.name}
+
+${botConfig.description || 'Discord Bot powered by discord.js'}
+
+## 特徴
+
+- ✅ Botが「オンライン」として表示されます
+- ✅ discord.jsを使用したGateway接続
+- ✅ スラッシュコマンド対応
+
+## セットアップ
+
+### 1. 依存関係のインストール
+
+\`\`\`bash
+npm install
+\`\`\`
+
+### 2. 環境変数の設定
+
+\`.env\`ファイルを作成し、以下の環境変数を設定してください:
+
+${envVarDocs}
+
+**注意:** 実際の値はDiscord Developer Portalから取得してください。上記はプレースホルダーです。
+
+### 3. ビルド
+
+\`\`\`bash
+npm run build
+\`\`\`
+
+### 4. 起動
+
+\`\`\`bash
+npm start
+\`\`\`
+
+または開発モード:
+
+\`\`\`bash
+npm run dev
+\`\`\`
+
+## デプロイ
+
+このBotは常時稼働サーバーが必要です。以下のプラットフォームでデプロイできます:
+
+- **Railway** (推奨): https://railway.app/
+- **Render**: https://render.com/
+- **Heroku**: https://www.heroku.com/
+- **VPS/EC2**: 任意のVPSやAWS EC2
+
+### Railway/Renderでのデプロイ
+
+1. GitHubリポジトリをインポート
+2. 環境変数を設定
+3. 自動デプロイ完了
+
+### PM2でのデプロイ (VPS/EC2)
+
+PM2を使用して本番環境で管理する場合:
+
+\`\`\`bash
+# PM2をグローバルにインストール
+npm install -g pm2
+
+# Botを起動（プロセス名: ${processName}）
+pm2 start npm --name "${processName}" -- start
+
+# 自動起動設定（サーバー再起動時に自動起動）
+pm2 startup
+pm2 save
+
+# ステータス確認
+pm2 status
+
+# ログ確認
+pm2 logs ${processName}
+
+# 再起動
+pm2 restart ${processName}
+
+# 停止
+pm2 stop ${processName}
+
+# プロセス削除
+pm2 delete ${processName}
+\`\`\`
+
+**PM2の便利なコマンド:**
+
+\`\`\`bash
+# すべてのプロセスの状態を確認
+pm2 list
+
+# リアルタイムモニタリング
+pm2 monit
+
+# メモリ使用量などの詳細情報
+pm2 show ${processName}
+\`\`\`
+
+## スラッシュコマンド
+
+スラッシュコマンドはBot起動時に自動的に登録されます。
+
+## 生成元
+
+このBotは [DiscordBot-Maker](https://github.com/yourusername/discordbot-maker) で生成されました。
+`;
+}
+
+/**
+ * Gateway Bot用のセットアップ手順を生成
+ */
+function generateGatewaySetupInstructions(envVariables: EnvVariable[]): string {
+  // 環境変数の説明を生成（実際の値は表示しない）
+  const envVarDocs = envVariables.map((env) => {
+    return `### ${env.key}\n${env.description}\n**Discord Developer Portalから取得してください**`;
+  }).join('\n\n');
+
+  return `# Discord Bot セットアップ手順 (Gateway Bot)
+
+## 1. リポジトリのクローン
+
+GitHubからリポジトリをクローンしてください。
+
+## 2. 依存関係のインストール
+
+\`\`\`bash
+npm install
+\`\`\`
+
+## 3. 環境変数の設定
+
+\`.env\`ファイルを作成し、以下の環境変数を設定してください:
+
+${envVarDocs}
+
+**重要:** 環境変数の実際の値はGitHubには含まれていません。Discord Developer Portalから取得して設定してください。
+
+## 4. ビルドと起動
+
+\`\`\`bash
+npm run build
+npm start
+\`\`\`
+
+または開発モード:
+
+\`\`\`bash
+npm run dev
+\`\`\`
+
+## 5. デプロイ (本番環境)
+
+このBotは常時稼働が必要なため、以下のいずれかのプラットフォームにデプロイしてください:
+
+- **Railway** (推奨・無料枠あり): https://railway.app/
+- **Render** (無料枠あり): https://render.com/
+- **Heroku**: https://www.heroku.com/
+- **VPS/EC2**: 任意のVPSやAWS EC2
+
+スラッシュコマンドはBot起動時に自動的に登録されます。
+`;
 }

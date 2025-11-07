@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
-import { RepositoryConfigSchema, BotConfigSchema } from '@/lib/types';
+import { RepositoryConfigSchema, BotConfigSchema, BotDeploymentType } from '@/lib/types';
 
 const Step1Schema = z.object({
   repository: RepositoryConfigSchema,
@@ -145,6 +145,64 @@ export function Step1Repository({
                 error={errors.botConfig?.publicKey?.message}
                 helperText="Discord Developer Portalから取得できます"
               />
+
+              <Input
+                label="Bot Token（オプション）"
+                placeholder="MTk4NjIyNDgzNDcxOTI1MjQ4..."
+                type="password"
+                {...register('botConfig.botToken')}
+                error={errors.botConfig?.botToken?.message}
+                helperText="Discord Developer Portal > Bot から取得できます"
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  デプロイメントタイプ
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      id="interactions"
+                      value={BotDeploymentType.INTERACTIONS_ENDPOINT}
+                      {...register('botConfig.deploymentType')}
+                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      defaultChecked
+                    />
+                    <label htmlFor="interactions" className="flex-1 cursor-pointer">
+                      <div className="font-semibold text-gray-900">Interactions Endpoint (Cloudflare Workers)</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        ✅ サーバーレス（無料枠が大きい）<br />
+                        ✅ スラッシュコマンド対応<br />
+                        ⚠️ Botは「オフライン」表示（機能は正常）<br />
+                        📦 デプロイ先: Cloudflare Workers
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      id="gateway"
+                      value={BotDeploymentType.GATEWAY}
+                      {...register('botConfig.deploymentType')}
+                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="gateway" className="flex-1 cursor-pointer">
+                      <div className="font-semibold text-gray-900">Gateway (discord.js)</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        ✅ Botが「オンライン」表示<br />
+                        ✅ リアルタイムイベント取得可能<br />
+                        ⚠️ 常時稼働サーバーが必要<br />
+                        📦 デプロイ先: Railway / Render / VPS
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                {errors.botConfig?.deploymentType && (
+                  <p className="mt-1 text-sm text-red-600">{errors.botConfig.deploymentType.message}</p>
+                )}
+              </div>
             </div>
           </div>
         </CardBody>
