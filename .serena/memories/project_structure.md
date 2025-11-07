@@ -1,0 +1,31 @@
+The project follows a standard Next.js application structure with clear separation of concerns:
+
+- **`/src`**: The main source directory for the application.
+    - **`/src/app`**: Contains Next.js App Router related files, including pages, layouts, and API routes.
+        - **`/src/app/api`**: API routes for backend functionalities like authentication (`auth`) and bot generation (`generate`).
+        - **`/src/app/dashboard`**: Dashboard page for the application.
+        - **`/src/app/globals.css`**: Global CSS styles.
+        - **`/src/app/layout.tsx`**: Root layout for the Next.js application.
+        - **`/src/app/page.tsx`**: The main landing page.
+    - **`/src/components`**: Reusable React components.
+        - **`/src/components/steps`**: Components related to the multi-step bot creation process.
+        - **`/src/components/ui`**: Generic UI components (e.g., `Button`, `Input`, `Card`).
+    - **`/src/hooks`**: Custom React hooks for encapsulating reusable logic (e.g., `useAuth.ts`).
+    - **`/src/lib`**: Utility functions, helper modules, and external service integrations.
+        - **`firebase.ts`**: Firebase configuration and utilities.
+        - **`github.ts`**: GitHub API interaction logic.
+        - **`template-generator.ts`**: Logic for generating bot templates.
+        - **`types.ts`**: Global TypeScript type definitions.
+        - **`utils.ts`**: General utility functions.
+- **`/templates`**: (Not directly under `src`) This directory likely holds the base code templates for the Discord bots that the application generates.
+- **`/public`**: Static assets served directly by Next.js (e.g., images, favicons).
+- **Configuration Files**:
+    - `next.config.js`: Next.js configuration.
+    - `tailwind.config.ts`: Tailwind CSS configuration.
+    - `tsconfig.json`: TypeScript compiler configuration.
+    - `.eslintrc.json`: ESLint configuration.
+    - `postcss.config.js`: PostCSS configuration.
+    - `package.json`: Project metadata and scripts.
+    - `.env.example`: Example environment variables.
+    - `.gitignore`: Specifies intentionally untracked files to ignore.
+    - `README.md`, `LICENSE`, `CONTRIBUTING.md`: Project documentation.
