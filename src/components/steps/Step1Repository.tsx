@@ -1,12 +1,18 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
+import Container from '@cloudscape-design/components/container';
+import Header from '@cloudscape-design/components/header';
+import SpaceBetween from '@cloudscape-design/components/space-between';
+import FormField from '@cloudscape-design/components/form-field';
+import Input from '@cloudscape-design/components/input';
+import Textarea from '@cloudscape-design/components/textarea';
+import Checkbox from '@cloudscape-design/components/checkbox';
+import RadioGroup from '@cloudscape-design/components/radio-group';
+import Button from '@cloudscape-design/components/button';
+import Form from '@cloudscape-design/components/form';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
 import { RepositoryConfigSchema, BotConfigSchema, BotDeploymentType } from '@/lib/types';
 
@@ -35,6 +41,7 @@ export function Step1Repository({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<Step1FormData>({
     resolver: zodResolver(Step1Schema),
@@ -52,169 +59,265 @@ export function Step1Repository({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Card>
-        <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900">
-            ステップ 1: リポジトリとBot設定
-          </h2>
-          <p className="text-gray-600 mt-1">
-            GitHubリポジトリとDiscord Botの基本情報を設定してください
-          </p>
-        </CardHeader>
-
-        <CardBody className="space-y-6">
-          {/* リポジトリ設定 */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              GitHubリポジトリ設定
-            </h3>
-            <div className="space-y-4">
-              <Input
-                label="リポジトリ名"
-                placeholder="my-discord-bot"
-                required
-                {...register('repository.name')}
-                error={errors.repository?.name?.message}
-                helperText="英数字、ハイフン、アンダースコアのみ使用可能"
-              />
-
-              <Input
-                label="ブランチ名"
-                placeholder="main"
-                required
-                {...register('repository.branch')}
-                error={errors.repository?.branch?.message}
-              />
-
-              <Textarea
-                label="リポジトリの説明"
-                placeholder="このリポジトリの説明を入力してください"
-                rows={3}
-                {...register('repository.description')}
-                error={errors.repository?.description?.message}
-              />
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isPrivate"
-                  {...register('repository.isPrivate')}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="isPrivate" className="text-sm text-gray-700">
-                  プライベートリポジトリとして作成
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Bot設定 */}
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Discord Bot設定
-            </h3>
-            <div className="space-y-4">
-              <Input
-                label="Bot名"
-                placeholder="My Discord Bot"
-                required
-                {...register('botConfig.name')}
-                error={errors.botConfig?.name?.message}
-              />
-
-              <Textarea
-                label="Botの説明"
-                placeholder="このBotの機能や目的を説明してください"
-                rows={3}
-                {...register('botConfig.description')}
-                error={errors.botConfig?.description?.message}
-              />
-
-              <Input
-                label="Application ID（オプション）"
-                placeholder="123456789012345678"
-                {...register('botConfig.applicationId')}
-                error={errors.botConfig?.applicationId?.message}
-                helperText="Discord Developer Portalから取得できます"
-              />
-
-              <Input
-                label="Public Key（オプション）"
-                placeholder="abcdef0123456789..."
-                {...register('botConfig.publicKey')}
-                error={errors.botConfig?.publicKey?.message}
-                helperText="Discord Developer Portalから取得できます"
-              />
-
-              <Input
-                label="Bot Token（オプション）"
-                placeholder="MTk4NjIyNDgzNDcxOTI1MjQ4..."
-                type="password"
-                {...register('botConfig.botToken')}
-                error={errors.botConfig?.botToken?.message}
-                helperText="Discord Developer Portal > Bot から取得できます"
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  デプロイメントタイプ
-                </label>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      id="interactions"
-                      value={BotDeploymentType.INTERACTIONS_ENDPOINT}
-                      {...register('botConfig.deploymentType')}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      defaultChecked
-                    />
-                    <label htmlFor="interactions" className="flex-1 cursor-pointer">
-                      <div className="font-semibold text-gray-900">Interactions Endpoint (Cloudflare Workers)</div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        ✅ サーバーレス（無料枠が大きい）<br />
-                        ✅ スラッシュコマンド対応<br />
-                        ⚠️ Botは「オフライン」表示（機能は正常）<br />
-                        📦 デプロイ先: Cloudflare Workers
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      id="gateway"
-                      value={BotDeploymentType.GATEWAY}
-                      {...register('botConfig.deploymentType')}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <label htmlFor="gateway" className="flex-1 cursor-pointer">
-                      <div className="font-semibold text-gray-900">Gateway (discord.js)</div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        ✅ Botが「オンライン」表示<br />
-                        ✅ リアルタイムイベント取得可能<br />
-                        ⚠️ 常時稼働サーバーが必要<br />
-                        📦 デプロイ先: Railway / Render / VPS
-                      </div>
-                    </label>
-                  </div>
-                </div>
-                {errors.botConfig?.deploymentType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.botConfig.deploymentType.message}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardBody>
-
-        <CardFooter>
-          <div className="flex justify-end">
-            <Button type="submit" size="lg">
+      <Form
+        actions={
+          <SpaceBetween direction="horizontal" size="xs">
+            <Button variant="primary" formAction="submit">
               次へ
             </Button>
-          </div>
-        </CardFooter>
-      </Card>
+          </SpaceBetween>
+        }
+      >
+        <SpaceBetween size="l">
+          <Container
+            header={
+              <Header
+                variant="h2"
+                description="GitHubリポジトリとDiscord Botの基本情報を設定してください"
+              >
+                ステップ 1: リポジトリとBot設定
+              </Header>
+            }
+          >
+            <SpaceBetween size="l">
+              {/* GitHubリポジトリ設定 */}
+              <SpaceBetween size="m">
+                <Header variant="h3">GitHubリポジトリ設定</Header>
+
+                <Controller
+                  name="repository.name"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="リポジトリ名"
+                      description="英数字、ハイフン、アンダースコアのみ使用可能"
+                      errorText={errors.repository?.name?.message}
+                    >
+                      <Input
+                        value={field.value}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="my-discord-bot"
+                        type="text"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="repository.branch"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="ブランチ名"
+                      errorText={errors.repository?.branch?.message}
+                    >
+                      <Input
+                        value={field.value}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="main"
+                        type="text"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="repository.description"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="リポジトリの説明"
+                      errorText={errors.repository?.description?.message}
+                    >
+                      <Textarea
+                        value={field.value || ''}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="このリポジトリの説明を入力してください"
+                        rows={3}
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="repository.isPrivate"
+                  control={control}
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <Checkbox
+                      {...field}
+                      checked={value}
+                      onChange={({ detail }) => onChange(detail.checked)}
+                    >
+                      プライベートリポジトリとして作成
+                    </Checkbox>
+                  )}
+                />
+              </SpaceBetween>
+
+              {/* Bot設定 */}
+              <SpaceBetween size="m">
+                <Header variant="h3">Discord Bot設定</Header>
+
+                <Controller
+                  name="botConfig.name"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="Bot名"
+                      errorText={errors.botConfig?.name?.message}
+                    >
+                      <Input
+                        value={field.value}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="My Discord Bot"
+                        type="text"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="botConfig.description"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="Botの説明"
+                      errorText={errors.botConfig?.description?.message}
+                    >
+                      <Textarea
+                        value={field.value || ''}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="このBotの機能や目的を説明してください"
+                        rows={3}
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="botConfig.applicationId"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="Application ID（オプション）"
+                      description="Discord Developer Portalから取得できます"
+                      errorText={errors.botConfig?.applicationId?.message}
+                    >
+                      <Input
+                        value={field.value || ''}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="123456789012345678"
+                        type="text"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="botConfig.publicKey"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="Public Key（オプション）"
+                      description="Discord Developer Portalから取得できます"
+                      errorText={errors.botConfig?.publicKey?.message}
+                    >
+                      <Input
+                        value={field.value || ''}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="abcdef0123456789..."
+                        type="text"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="botConfig.botToken"
+                  control={control}
+                  render={({ field }) => (
+                    <FormField
+                      label="Bot Token（オプション）"
+                      description="Discord Developer Portal > Bot から取得できます"
+                      errorText={errors.botConfig?.botToken?.message}
+                    >
+                      <Input
+                        value={field.value || ''}
+                        onChange={({ detail }) => field.onChange(detail.value)}
+                        placeholder="MTk4NjIyNDgzNDcxOTI1MjQ4..."
+                        type="password"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  name="botConfig.deploymentType"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <FormField
+                      label="デプロイメントタイプ"
+                      errorText={errors.botConfig?.deploymentType?.message}
+                    >
+                      <div className="space-y-3">
+                        {[
+                          {
+                            value: BotDeploymentType.INTERACTIONS_ENDPOINT,
+                            label: 'Interactions Endpoint (Cloudflare Workers)',
+                            description: (
+                              <>
+                                ✅ サーバーレス（無料枠が大きい）<br />
+                                ✅ スラッシュコマンド対応<br />
+                                ⚠️ Botは「オフライン」表示（機能は正常）<br />
+                                📦 デプロイ先: Cloudflare Workers
+                              </>
+                            ),
+                          },
+                          {
+                            value: BotDeploymentType.GATEWAY,
+                            label: 'Gateway (discord.js)',
+                            description: (
+                              <>
+                                ✅ Botが「オンライン」表示<br />
+                                ✅ リアルタイムイベント取得可能<br />
+                                ⚠️ 常時稼働サーバーが必要<br />
+                                📦 デプロイ先: Railway / Render / VPS
+                              </>
+                            ),
+                          },
+                        ].map((item) => (
+                          <div
+                            key={item.value}
+                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                              (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            }`}
+                            onClick={() => onChange(item.value)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <input
+                                type="radio"
+                                checked={(value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value}
+                                onChange={() => onChange(item.value)}
+                                className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              />
+                              <div className="flex-1">
+                                <div className="font-semibold text-gray-900">{item.label}</div>
+                                <div className="text-sm text-gray-600 mt-1">{item.description}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </FormField>
+                  )}
+                />
+              </SpaceBetween>
+            </SpaceBetween>
+          </Container>
+        </SpaceBetween>
+      </Form>
     </form>
   );
 }
