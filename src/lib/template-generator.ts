@@ -498,6 +498,7 @@ function generatePackageJson(botConfig: BotConfig): string {
       description: botConfig.description || 'Discord Bot powered by Cloudflare Workers',
       main: 'src/index.ts',
       scripts: {
+        build: 'tsc --noEmit',
         dev: 'wrangler dev',
         deploy: 'wrangler deploy',
       },
