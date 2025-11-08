@@ -399,7 +399,7 @@ function generateCommandHandler(
       /\{random\((.*?)\)\}/g,
       (match, args) => {
         // 数値範囲の場合: random(1, 6) → Math.floor(Math.random() * (6 - 1 + 1)) + 1
-        if (/^\d+\s*,\s*[\w\d\s|]+$/.test(args.trim())) {
+        if (/^\d+\s*,\s*\d+$/.test(args.trim())) {
           const parts = args.split(',').map((s: string) => s.trim());
           if (parts.length === 2) {
             const min = parts[0];
@@ -868,7 +868,7 @@ function generateGatewayCommandHandler(
       /\{random\((.*?)\)\}/g,
       (match, args) => {
         // 数値範囲の場合
-        if (/^\d+\s*,\s*[\w\d\s|]+$/.test(args.trim())) {
+        if (/^\d+\s*,\s*\d+$/.test(args.trim())) {
           const parts = args.split(',').map((s: string) => s.trim());
           if (parts.length === 2) {
             const min = parts[0];
