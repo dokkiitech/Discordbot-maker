@@ -208,7 +208,7 @@ export function Step1Repository({
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:underline cursor-pointer"
                           >
-                            こちら＞Bot
+                            こちら＞general information
                           </a>
                           から取得できます
                         </>
@@ -239,7 +239,7 @@ export function Step1Repository({
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:underline cursor-pointer"
                           >
-                            こちら＞Bot
+                            こちら＞general information
                           </a>
                           から取得できます
                         </>
