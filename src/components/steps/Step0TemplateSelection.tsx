@@ -156,7 +156,7 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
                           color: 'var(--color-text-body-secondary)',
                         }}
                       >
-                        {tag}
+                        #{tag}
                       </span>
                     ))}
                   </div>
