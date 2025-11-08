@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
       repoUrl: repoInfo.url,
       envVariables,
       setupInstructions: generationResult.setupInstructions,
+      files: generationResult.files, // ZIPダウンロード用にファイル情報を追加
     });
   } catch (error) {
     console.error('Error in generate API:', error);
