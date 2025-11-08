@@ -55,8 +55,20 @@ export function Step1Repository({
     onNext();
   };
 
+  const handleFormSubmit = handleSubmit((data) => {
+    onSubmit(data);
+  }, () => {
+    // エラーがある場合、フォームの上部にスクロール
+    setTimeout(() => {
+      const formElement = document.querySelector('form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 0);
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleFormSubmit}>
       <Form
         actions={
           <SpaceBetween direction="horizontal" size="xs">

@@ -79,6 +79,27 @@ body {
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }
+
+  /* Error state styling for FormField */
+  /* Cloudscape FormField with error: red border on input */
+  .awsui-form-field--error input,
+  .awsui-form-field--error textarea,
+  .awsui-form-field--error select {
+    border-color: var(--error) !important;
+    border-width: 2px !important;
+  }
+
+  /* Red text for error message in FormField */
+  .awsui-form-field__error {
+    color: var(--error) !important;
+    font-weight: 500;
+  }
+
+  /* Red label for error fields */
+  .awsui-form-field--error .awsui-form-field__label {
+    color: var(--error) !important;
+    font-weight: 600;
+  }
 }
 
 @layer utilities {
