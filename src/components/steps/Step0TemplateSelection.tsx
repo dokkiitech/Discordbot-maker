@@ -44,10 +44,8 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
         return 'ユーティリティ';
       case 'fun':
         return '娯楽';
-      case 'moderation':
-        return 'モデレーション';
-      case 'api-integration':
-        return 'API連携';
+      case 'info':
+        return '情報';
       case 'custom':
         return 'カスタム';
       default:
@@ -89,28 +87,28 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
             すべて
           </Button>
           <Button
-            variant={filterCategory === 'utility' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('utility')}
-          >
-            ユーティリティ
-          </Button>
-          <Button
             variant={filterCategory === 'fun' ? 'primary' : 'normal'}
             onClick={() => setFilterCategory('fun')}
           >
-            娯楽
+            🎮 娯楽
           </Button>
           <Button
-            variant={filterCategory === 'api-integration' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('api-integration')}
+            variant={filterCategory === 'info' ? 'primary' : 'normal'}
+            onClick={() => setFilterCategory('info')}
           >
-            API連携
+            📚 情報
+          </Button>
+          <Button
+            variant={filterCategory === 'utility' ? 'primary' : 'normal'}
+            onClick={() => setFilterCategory('utility')}
+          >
+            🔧 ユーティリティ
           </Button>
           <Button
             variant={filterCategory === 'custom' ? 'primary' : 'normal'}
             onClick={() => setFilterCategory('custom')}
           >
-            カスタム
+            📝 カスタム
           </Button>
         </div>
 
