@@ -356,11 +356,17 @@ const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
                     onChange={(e) => setSelectedTemplate(e.target.value as ResponseTemplate)}
                     className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
                   >
-                    <option value={ResponseTemplate.SIMPLE_TEXT}>シンプルテキスト</option>
-                    <option value={ResponseTemplate.MULTI_LINE}>複数行</option>
-                    <option value={ResponseTemplate.EMBED}>Embed</option>
-                    <option value={ResponseTemplate.JSON_FORMATTED}>JSON</option>
+                    <option value={ResponseTemplate.SIMPLE_TEXT}>シンプルテキスト - 1行表示</option>
+                    <option value={ResponseTemplate.MULTI_LINE}>複数行 - 改行して見やすく</option>
+                    <option value={ResponseTemplate.EMBED}>Embed - リッチな見た目</option>
+                    <option value={ResponseTemplate.JSON_FORMATTED}>JSON - 開発者向け</option>
                   </select>
+                  <div className="mt-1 text-[10px] text-gray-600">
+                    {selectedTemplate === ResponseTemplate.SIMPLE_TEXT && '💡 1行で複数項目を表示。簡潔な情報向け'}
+                    {selectedTemplate === ResponseTemplate.MULTI_LINE && '💡 各項目を改行表示。バランスが良く読みやすい ⭐おすすめ'}
+                    {selectedTemplate === ResponseTemplate.EMBED && '💡 色付きボックスで表示。見た目重視'}
+                    {selectedTemplate === ResponseTemplate.JSON_FORMATTED && '💡 JSON形式で表示。技術用途向け'}
+                  </div>
                 </div>
 
                 {/* フィールドリスト */}

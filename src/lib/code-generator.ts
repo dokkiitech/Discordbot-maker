@@ -19,7 +19,7 @@ export function generateCustomLogic(
 ): string {
   if (fieldMappings.length === 0) {
     return `// API応答を処理してDiscord応答を返す
-const data = await apiResponse.json();
+const data = await apiResponse.json() as any;
 return {
   content: JSON.stringify(data, null, 2)
 };`;
@@ -43,7 +43,7 @@ return {
  * シンプルなテキスト形式のコード生成
  */
 function generateSimpleTextCode(fieldMappings: FieldMapping[]): string {
-  const lines: string[] = ['const data = await apiResponse.json();'];
+  const lines: string[] = ['const data = await apiResponse.json() as any;'];
 
   // フィールドの値を変数に抽出
   fieldMappings.forEach(mapping => {
@@ -71,7 +71,7 @@ function generateSimpleTextCode(fieldMappings: FieldMapping[]): string {
  * 複数行テキスト形式のコード生成
  */
 function generateMultiLineCode(fieldMappings: FieldMapping[]): string {
-  const lines: string[] = ['const data = await apiResponse.json();'];
+  const lines: string[] = ['const data = await apiResponse.json() as any;'];
 
   // フィールドの値を変数に抽出
   fieldMappings.forEach(mapping => {
@@ -99,7 +99,7 @@ function generateMultiLineCode(fieldMappings: FieldMapping[]): string {
  * Discord Embed形式のコード生成
  */
 function generateEmbedCode(fieldMappings: FieldMapping[]): string {
-  const lines: string[] = ['const data = await apiResponse.json();'];
+  const lines: string[] = ['const data = await apiResponse.json() as any;'];
 
   // フィールドの値を変数に抽出
   fieldMappings.forEach(mapping => {
@@ -139,15 +139,31 @@ function generateEmbedCode(fieldMappings: FieldMapping[]): string {
  * JSON整形形式のコード生成
  */
 function generateJsonFormattedCode(fieldMappings: FieldMapping[]): string {
-  const lines: string[] = ['const data = await apiResponse.json();'];
+  const lines: string[] = ['const data = await apiResponse.json() as any;'];
 
   lines.push('');
   lines.push('const selectedData = {');
 
+  // プロパティ名の重複を防ぐためにユニークなキーを生成
+  const usedKeys = new Set<string>();
+
   fieldMappings.forEach((mapping, index) => {
     const varName = fieldPathToVarName(mapping.fieldPath);
     const comma = index < fieldMappings.length - 1 ? ',' : '';
-    lines.push(`  "${mapping.displayLabel}": ${pathToAccessor(mapping.fieldPath)}${comma}`);
+
+    // displayLabelから無効な文字を削除してサニタイズ
+    let sanitizedLabel = mapping.displayLabel.replace(/[\[\]]/g, '_'); // [0] -> _0_
+
+    // ユニークなプロパティキーを生成
+    let propertyKey = sanitizedLabel;
+    let counter = 1;
+    while (usedKeys.has(propertyKey)) {
+      propertyKey = `${sanitizedLabel}_${counter}`;
+      counter++;
+    }
+    usedKeys.add(propertyKey);
+
+    lines.push(`  "${propertyKey}": ${pathToAccessor(mapping.fieldPath)}${comma}`);
   });
 
   lines.push('};');
@@ -175,21 +191,31 @@ function pathToAccessor(path: string): string {
 
 /**
  * フィールドパスを変数名に変換
- * 例: "data.main.temp" → "temp"
- * 例: "weather[0].description" → "weatherDescription"
+ * 例: "main.temp" → "mainTemp"
+ * 例: "[0].word" → "word"
+ * 例: "[0].license.name" → "licenseName"
+ * 例: "[0].phonetics[0].license.name" → "phoneticsLicenseName"
  */
 function fieldPathToVarName(path: string): string {
-  // 配列アクセスを削除
+  // 配列アクセスを削除してアンダースコアに変換
   const cleaned = path.replace(/\[\d+\]/g, '');
-  // ドットで分割して最後の部分を取得
-  const parts = cleaned.split('.');
+  // ドットで分割してフィルター（空文字列を除く）
+  const parts = cleaned.split('.').filter(Boolean);
+
+  if (parts.length === 0) {
+    return 'value';
+  }
 
   if (parts.length === 1) {
     return parts[0];
   }
 
+  // より多くのコンテキストを含めて重複を防ぐ
+  // 最大3つのパーツを使用
+  const relevantParts = parts.slice(-3);
+
   // キャメルケースに変換
-  return parts.slice(-2).map((part, index) => {
+  return relevantParts.map((part, index) => {
     if (index === 0) return part;
     return part.charAt(0).toUpperCase() + part.slice(1);
   }).join('');

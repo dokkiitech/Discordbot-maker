@@ -558,12 +558,18 @@ return {
                 selectedOption={{ value: selectedTemplate, label: selectedTemplate }}
                 onChange={({ detail }) => setSelectedTemplate(detail.selectedOption.value as ResponseTemplate)}
                 options={[
-                  { value: ResponseTemplate.SIMPLE_TEXT, label: 'シンプルテキスト' },
-                  { value: ResponseTemplate.MULTI_LINE, label: '複数行テキスト' },
-                  { value: ResponseTemplate.EMBED, label: 'Discord Embed' },
-                  { value: ResponseTemplate.JSON_FORMATTED, label: 'JSON整形' },
+                  { value: ResponseTemplate.SIMPLE_TEXT, label: 'シンプルテキスト - 1行表示' },
+                  { value: ResponseTemplate.MULTI_LINE, label: '複数行 - 改行して見やすく' },
+                  { value: ResponseTemplate.EMBED, label: 'Embed - リッチな見た目' },
+                  { value: ResponseTemplate.JSON_FORMATTED, label: 'JSON - 開発者向け' },
                 ]}
               />
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+                {selectedTemplate === ResponseTemplate.SIMPLE_TEXT && '💡 1行で複数項目を表示。簡潔な情報向け'}
+                {selectedTemplate === ResponseTemplate.MULTI_LINE && '💡 各項目を改行表示。バランスが良く読みやすい ⭐おすすめ'}
+                {selectedTemplate === ResponseTemplate.EMBED && '💡 色付きボックスで表示。見た目重視'}
+                {selectedTemplate === ResponseTemplate.JSON_FORMATTED && '💡 JSON形式で表示。技術用途向け'}
+              </div>
             </FormField>
 
             <FormField label="フィールドを選択">
