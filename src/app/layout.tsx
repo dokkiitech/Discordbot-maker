@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@cloudscape-design/global-styles/index.css";
 import "./globals.css";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "DiscordBot-Maker",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -18,9 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body className="antialiased">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

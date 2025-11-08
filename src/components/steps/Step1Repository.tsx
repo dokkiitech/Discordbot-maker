@@ -206,7 +206,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -237,7 +237,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -268,7 +268,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -326,8 +326,8 @@ export function Step1Repository({
                             key={item.value}
                             className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                               (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                ? 'border-primary bg-primary dark:bg-primary dark:bg-opacity-20 bg-opacity-10'
+                                : 'border-border dark:border-border hover:opacity-80'
                             }`}
                             onClick={() => onChange(item.value)}
                           >
@@ -336,11 +336,11 @@ export function Step1Repository({
                                 type="radio"
                                 checked={(value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value}
                                 onChange={() => onChange(item.value)}
-                                className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                className="mt-1 w-4 h-4 text-primary border-border dark:border-border focus:ring-primary"
                               />
                               <div className="flex-1">
-                                <div className="font-semibold text-gray-900">{item.label}</div>
-                                <div className="text-sm text-gray-600 mt-1">{item.description}</div>
+                                <div className="font-semibold text-foreground">{item.label}</div>
+                                <div className="text-sm text-muted dark:text-muted mt-1">{item.description}</div>
                               </div>
                             </div>
                           </div>
