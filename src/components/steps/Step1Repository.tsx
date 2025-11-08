@@ -200,7 +200,19 @@ export function Step1Repository({
                   render={({ field }) => (
                     <FormField
                       label="Application ID（オプション）"
-                      description="Discord Developer Portalから取得できます"
+                      description={
+                        <>
+                          <a
+                            href="https://discord.com/developers/applications"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-500 hover:underline cursor-pointer"
+                          >
+                            こちら＞Bot
+                          </a>
+                          から取得できます
+                        </>
+                      }
                       errorText={errors.botConfig?.applicationId?.message}
                     >
                       <Input
@@ -219,7 +231,19 @@ export function Step1Repository({
                   render={({ field }) => (
                     <FormField
                       label="Public Key（オプション）"
-                      description="Discord Developer Portalから取得できます"
+                      description={
+                        <>
+                          <a
+                            href="https://discord.com/developers/applications"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-500 hover:underline cursor-pointer"
+                          >
+                            こちら＞Bot
+                          </a>
+                          から取得できます
+                        </>
+                      }
                       errorText={errors.botConfig?.publicKey?.message}
                     >
                       <Input
@@ -238,7 +262,19 @@ export function Step1Repository({
                   render={({ field }) => (
                     <FormField
                       label="Bot Token（オプション）"
-                      description="Discord Developer Portal > Bot から取得できます"
+                      description={
+                        <>
+                          <a
+                            href="https://discord.com/developers/applications"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-500 hover:underline cursor-pointer"
+                          >
+                            こちら＞Bot
+                          </a>
+                          から取得できます
+                        </>
+                      }
                       errorText={errors.botConfig?.botToken?.message}
                     >
                       <Input
