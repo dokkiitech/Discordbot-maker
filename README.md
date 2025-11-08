@@ -1,5 +1,8 @@
 # DiscordBot-Maker
 
+[![CI](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/ci.yml/badge.svg)](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/ci.yml)
+[![Lint](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/lint.yml/badge.svg)](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/lint.yml)
+
 Discord Botテンプレートメーカー - Webブラウザから簡単にDiscord Botを設計・生成し、GitHubにデプロイ
 
 ## 🚀 特徴
@@ -111,11 +114,46 @@ discordbot-maker/
 ## 🔧 技術スタック
 
 - **Frontend**: Next.js 14 (App Router), React, TypeScript
+- **UI Components**: Cloudscape Design System
 - **Styling**: Tailwind CSS
+- **Form Management**: React Hook Form + Zod
 - **Database**: Firebase Firestore
 - **Authentication**: GitHub OAuth
 - **Deployment**: Vercel
-- **Generated Bot**: Cloudflare Workers, Hono
+- **Generated Bot**: Cloudflare Workers / discord.js
+- **CI/CD**: GitHub Actions
+
+## 🧪 開発
+
+### コマンド一覧
+
+```bash
+# 開発サーバー起動
+npm run dev
+
+# プロダクションビルド
+npm run build
+
+# プロダクションサーバー起動
+npm start
+
+# ESLint実行
+npm run lint
+
+# TypeScript型チェック
+npm run type-check
+```
+
+### CI/CD
+
+このプロジェクトではGitHub Actionsを使用して、以下の自動チェックを実行しています:
+
+- **ESLint**: コード品質チェック
+- **TypeScript型チェック**: 型安全性の確認
+- **ビルドテスト**: Next.jsビルドが成功することを確認
+- **マルチNode.jsバージョンテスト**: Node.js 18.x, 20.x, 21.xでのテスト
+
+Pull Requestを作成すると、これらのチェックが自動的に実行されます。
 
 ## 📝 ライセンス
 

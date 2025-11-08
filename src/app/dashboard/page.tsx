@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Bot, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StepIndicator } from '@/components/steps/StepIndicator';
@@ -106,10 +107,12 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <img
+              <Image
                 src={user.avatar_url}
                 alt={user.login}
-                className="w-8 h-8 rounded-full"
+                width={32}
+                height={32}
+                className="rounded-full"
               />
               <span className="text-sm text-gray-700">{user.login}</span>
             </div>
