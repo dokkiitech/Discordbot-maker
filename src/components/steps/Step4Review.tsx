@@ -208,9 +208,11 @@ export function Step4Review({
                       cell: (item: [string, string]) => (
                         <Button
                           variant="icon"
-                          iconName="copy"
+                          iconName={copiedVar === item[0] ? 'check' : 'copy'}
                           onClick={() => handleCopyEnvVar(item[0], item[1])}
-                        />
+                        >
+                          {copiedVar === item[0] ? 'コピー完了!' : ''}
+                        </Button>
                       ),
                     },
                   ]}
