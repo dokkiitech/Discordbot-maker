@@ -671,7 +671,13 @@ https://your-worker-url.workers.dev/register?token=${registerSecret}
  * 文字列の最初の文字を大文字に
  */
 function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  // ハイフン（-）とアンダースコア（_）をキャメルケースに変換
+  // 例: "address-search" -> "AddressSearch"
+  // 例: "my_command" -> "MyCommand"
+  return str
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
 }
 
 /**

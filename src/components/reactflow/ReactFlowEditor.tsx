@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, createContext } from 'react';
 import {
   ReactFlow,
   Background,
@@ -19,8 +19,11 @@ import { CommandNode } from './nodes/CommandNode';
 import { OptionNode } from './nodes/OptionNode';
 import { ResponseNode } from './nodes/ResponseNode';
 import { AppNode, AppEdge } from '@/lib/reactflow-types';
-import { SlashCommand } from '@/lib/types';
+import { SlashCommand, ApiProfile } from '@/lib/types';
 import { commandsToReactFlow, reactFlowToCommands } from '@/lib/reactflow-converter';
+
+// APIプロファイルを提供するContext
+export const ApiProfilesContext = createContext<ApiProfile[]>([]);
 
 // ノードタイプの登録（コンポーネント外で定義して再レンダリングを防ぐ）
 const nodeTypes: NodeTypes = {
@@ -32,9 +35,10 @@ const nodeTypes: NodeTypes = {
 interface ReactFlowEditorInnerProps {
   commands: SlashCommand[];
   onChange: (commands: SlashCommand[]) => void;
+  apiProfiles: ApiProfile[];
 }
 
-function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps) {
+function ReactFlowEditorInner({ commands, onChange, apiProfiles }: ReactFlowEditorInnerProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>([]);
 
@@ -139,90 +143,93 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', aspectRatio: '16 / 9', maxHeight: '100vh' }}>
-      {/* ノード追加ツールバー */}
-      <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderBottom: '1px solid #bfdbfe', display: 'flex', gap: '8px', flexShrink: 0 }}>
-        <button
-          onClick={() => handleAddNode('command')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#3b82f6',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-          }}
-        >
-          + コマンド
-        </button>
-        <button
-          onClick={() => handleAddNode('option')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-          }}
-        >
-          + オプション
-        </button>
-        <button
-          onClick={() => handleAddNode('response')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#a855f7',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-          }}
-        >
-          + レスポンス
-        </button>
-      </div>
+    <ApiProfilesContext.Provider value={apiProfiles}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', aspectRatio: '16 / 9', maxHeight: '100vh' }}>
+        {/* ノード追加ツールバー */}
+        <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderBottom: '1px solid #bfdbfe', display: 'flex', gap: '8px', flexShrink: 0 }}>
+          <button
+            onClick={() => handleAddNode('command')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            + コマンド
+          </button>
+          <button
+            onClick={() => handleAddNode('option')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            + オプション
+          </button>
+          <button
+            onClick={() => handleAddNode('response')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#a855f7',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            + レスポンス
+          </button>
+        </div>
 
-      {/* ReactFlow キャンバス */}
-      <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
-        <style>{`.react-flow__attribution { display: none; }`}</style>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.15, minZoom: 0.3, maxZoom: 1.5 }}
-          style={{ backgroundColor: 'var(--card-background)' }}
-          minZoom={0.1}
-          maxZoom={3}
-          attributionPosition="bottom-left"
-        >
-          <Background color="var(--border)" gap={16} />
-          <Controls />
-        </ReactFlow>
+        {/* ReactFlow キャンバス */}
+        <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
+          <style>{`.react-flow__attribution { display: none; }`}</style>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.15, minZoom: 0.3, maxZoom: 1.5 }}
+            style={{ backgroundColor: 'var(--card-background)' }}
+            minZoom={0.1}
+            maxZoom={3}
+            attributionPosition="bottom-left"
+          >
+            <Background color="var(--border)" gap={16} />
+            <Controls />
+          </ReactFlow>
+        </div>
       </div>
-    </div>
+    </ApiProfilesContext.Provider>
   );
 }
 
 interface ReactFlowEditorProps {
   commands: SlashCommand[];
   onChange: (commands: SlashCommand[]) => void;
+  apiProfiles: ApiProfile[];
 }
 
-export function ReactFlowEditor({ commands, onChange }: ReactFlowEditorProps) {
+export function ReactFlowEditor({ commands, onChange, apiProfiles }: ReactFlowEditorProps) {
   return (
     <ReactFlowProvider>
-      <ReactFlowEditorInner commands={commands} onChange={onChange} />
+      <ReactFlowEditorInner commands={commands} onChange={onChange} apiProfiles={apiProfiles} />
     </ReactFlowProvider>
   );
 }

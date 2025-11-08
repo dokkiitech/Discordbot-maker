@@ -4,21 +4,21 @@ import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import type { OptionNodeData } from '@/lib/reactflow-types';
 
-const OptionNodeComponent = (props: any) => {
+const OptionNodeComponent = ({ data, id }: NodeProps) => {
   const { setNodes } = useReactFlow();
-  const data = props.data as OptionNodeData;
-  const id = props.id;
-  const [name, setName] = useState(data.name);
-  const [description, setDescription] = useState(data.description);
-  const [type, setType] = useState(data.type);
-  const [required, setRequired] = useState(data.required);
+  const nodeData = data as OptionNodeData;
+  const [name, setName] = useState(nodeData.name);
+  const [description, setDescription] = useState(nodeData.description);
+  const [type, setType] = useState(nodeData.type);
+  const [required, setRequired] = useState(nodeData.required);
 
   useEffect(() => {
-    setName(data.name);
-    setDescription(data.description);
-    setType(data.type);
-    setRequired(data.required);
-  }, [data.name, data.description, data.type, data.required]);
+    const d = data as OptionNodeData;
+    setName(d.name);
+    setDescription(d.description);
+    setType(d.type);
+    setRequired(d.required);
+  }, [data]);
 
   const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLSelectElement>) => {
     evt.stopPropagation();
