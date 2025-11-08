@@ -16,8 +16,8 @@ import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import type { SlashCommand, ApiProfile } from '@/lib/types';
 import { ResponseType } from '@/lib/types';
 
-// BlocklyEditorを動的にインポート（クライアントサイドのみ）
-const BlocklyEditor = lazy(() => import('@/components/blockly/BlocklyEditor').then(mod => ({ default: mod.BlocklyEditor })));
+// ReactFlowEditorを動的にインポート（クライアントサイドのみ）
+const ReactFlowEditor = lazy(() => import('@/components/reactflow/ReactFlowEditor').then(mod => ({ default: mod.ReactFlowEditor })));
 
 interface Step3CommandsProps {
   commands: SlashCommand[];
@@ -447,7 +447,7 @@ return {
         >
           <SpaceBetween size="l">{editorMode === 'visual' ? (
             <Suspense fallback={<Box>ビジュアルエディタを読み込み中...</Box>}>
-              <BlocklyEditor commands={commands} onChange={onChange} />
+              <ReactFlowEditor commands={commands} onChange={onChange} />
             </Suspense>
           ) : (
             <>
