@@ -2,10 +2,12 @@
 
 import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
-import { OptionNodeData } from '@/lib/reactflow-types';
+import type { OptionNodeData } from '@/lib/reactflow-types';
 
-const OptionNodeComponent = ({ data, id }: NodeProps<OptionNodeData>) => {
+const OptionNodeComponent = (props: any) => {
   const { setNodes } = useReactFlow();
+  const data = props.data as OptionNodeData;
+  const id = props.id;
   const [name, setName] = useState(data.name);
   const [description, setDescription] = useState(data.description);
   const [type, setType] = useState(data.type);

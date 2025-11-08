@@ -2,11 +2,13 @@
 
 import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
-import { ResponseNodeData } from '@/lib/reactflow-types';
+import type { ResponseNodeData } from '@/lib/reactflow-types';
 import { ResponseType } from '@/lib/types';
 
-const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
+const ResponseNodeComponent = (props: any) => {
   const { setNodes } = useReactFlow();
+  const data = props.data as ResponseNodeData;
+  const id = props.id;
   const [responseType, setResponseType] = useState(data.responseType);
   const [staticText, setStaticText] = useState(data.staticText || '');
   const [apiProfileId, setApiProfileId] = useState(data.apiProfileId || '');

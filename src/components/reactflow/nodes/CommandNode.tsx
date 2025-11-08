@@ -2,10 +2,12 @@
 
 import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
-import { CommandNodeData } from '@/lib/reactflow-types';
+import type { CommandNodeData } from '@/lib/reactflow-types';
 
-const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
+const CommandNodeComponent = (props: any) => {
   const { setNodes } = useReactFlow();
+  const data = props.data as CommandNodeData;
+  const id = props.id;
   const [name, setName] = useState(data.name);
   const [description, setDescription] = useState(data.description);
 

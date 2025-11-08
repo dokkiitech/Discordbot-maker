@@ -24,9 +24,9 @@ import { commandsToReactFlow, reactFlowToCommands } from '@/lib/reactflow-conver
 
 // ノードタイプの登録（コンポーネント外で定義して再レンダリングを防ぐ）
 const nodeTypes: NodeTypes = {
-  command: CommandNode,
-  option: OptionNode,
-  response: ResponseNode,
+  command: CommandNode as any,
+  option: OptionNode as any,
+  response: ResponseNode as any,
 };
 
 interface ReactFlowEditorInnerProps {

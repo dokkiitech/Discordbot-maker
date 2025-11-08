@@ -4,7 +4,7 @@ import { CommandOption, ResponseType } from './types';
 /**
  * CommandNodeのデータ型
  */
-export interface CommandNodeData {
+export interface CommandNodeData extends Record<string, unknown> {
   name: string;
   description: string;
 }
@@ -12,7 +12,7 @@ export interface CommandNodeData {
 /**
  * OptionNodeのデータ型
  */
-export interface OptionNodeData {
+export interface OptionNodeData extends Record<string, unknown> {
   name: string;
   description: string;
   type: 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role';
@@ -22,7 +22,7 @@ export interface OptionNodeData {
 /**
  * ResponseNodeのデータ型
  */
-export interface ResponseNodeData {
+export interface ResponseNodeData extends Record<string, unknown> {
   responseType: ResponseType;
   staticText?: string;
   apiProfileId?: string;

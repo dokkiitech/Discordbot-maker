@@ -140,9 +140,9 @@ export function reactFlowToCommands(
     const options: CommandOption[] = [];
 
     // オプションのチェーンを辿る
-    let currentOptionEdge = optionEdges[0];
-    while (currentOptionEdge) {
-      const optionNode = nodes.find(n => n.id === currentOptionEdge.target);
+    let currentOptionEdge: AppEdge | undefined = optionEdges[0];
+    while (currentOptionEdge !== undefined) {
+      const optionNode = nodes.find(n => n.id === currentOptionEdge!.target);
       if (optionNode && optionNode.type === 'option') {
         options.push({
           name: optionNode.data.name,
@@ -153,7 +153,7 @@ export function reactFlowToCommands(
 
         // 次のオプションを探す
         const nextEdge = edges.find(e => e.source === optionNode.id);
-        currentOptionEdge = nextEdge || null;
+        currentOptionEdge = nextEdge;
       } else {
         break;
       }
