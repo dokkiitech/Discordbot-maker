@@ -8,6 +8,10 @@ import { ResponseType } from '@/lib/types';
 export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => {
   const { setNodes } = useReactFlow();
 
+  const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    evt.stopPropagation();
+  }, []);
+
   const onResponseTypeChange = useCallback((evt: React.ChangeEvent<HTMLSelectElement>) => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -110,6 +114,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
           <select
             value={data.responseType}
             onChange={onResponseTypeChange}
+            onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value={ResponseType.STATIC_TEXT}>静的テキスト</option>
@@ -123,6 +128,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             <textarea
               value={data.staticText || ''}
               onChange={onStaticTextChange}
+              onMouseDown={handleInputMouseDown}
               className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               rows={3}
               placeholder="応答メッセージ"
@@ -136,6 +142,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
                 type="text"
                 value={data.apiProfileId || ''}
                 onChange={onApiProfileIdChange}
+                onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="api_profile_id"
               />
@@ -146,6 +153,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
                 type="text"
                 value={data.apiEndpoint || ''}
                 onChange={onApiEndpointChange}
+                onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="/api/endpoint"
               />
@@ -155,6 +163,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
               <textarea
                 value={data.codeSnippet || ''}
                 onChange={onCodeSnippetChange}
+                onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none font-mono"
                 rows={3}
                 placeholder="const data = await apiResponse.json();"

@@ -7,6 +7,10 @@ import { OptionNodeData } from '@/lib/reactflow-types';
 export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
   const { setNodes } = useReactFlow();
 
+  const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLSelectElement>) => {
+    evt.stopPropagation();
+  }, []);
+
   const onNameChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -93,6 +97,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             type="text"
             value={data.name}
             onChange={onNameChange}
+            onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="option_name"
           />
@@ -104,6 +109,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             type="text"
             value={data.description}
             onChange={onDescriptionChange}
+            onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="オプションの説明"
           />
@@ -114,6 +120,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
           <select
             value={data.type}
             onChange={onTypeChange}
+            onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="string">文字列</option>
@@ -131,6 +138,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             type="checkbox"
             checked={data.required}
             onChange={onRequiredChange}
+            onMouseDown={handleInputMouseDown}
             className="nodrag w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
           />
           <label htmlFor={`${id}-required`} className="ml-2 font-medium text-gray-700">

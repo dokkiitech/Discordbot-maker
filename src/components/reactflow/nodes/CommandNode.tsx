@@ -7,10 +7,21 @@ import { CommandNodeData } from '@/lib/reactflow-types';
 export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
   const { setNodes } = useReactFlow();
 
+  const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement>) => {
+    evt.stopPropagation();
+  }, []);
+
   const onNameChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
-    setNodes((nds) =>
-      nds.map((node) => {
+    console.log('[CommandNode] onNameChange called:', {
+      nodeId: id,
+      newValue: evt.target.value,
+      currentDataName: data.name,
+    });
+
+    setNodes((nds) => {
+      const updated = nds.map((node) => {
         if (node.id === id) {
+          console.log('[CommandNode] Updating node:', id, 'to:', evt.target.value);
           return {
             ...node,
             data: {
@@ -20,8 +31,10 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
           };
         }
         return node;
-      })
-    );
+      });
+      console.log('[CommandNode] Updated nodes count:', updated.length);
+      return updated;
+    });
   }, [id, setNodes]);
 
   const onDescriptionChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +66,7 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
           type="text"
           value={data.name}
           onChange={onNameChange}
+          onMouseDown={handleInputMouseDown}
           className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="/mycommand"
         />
@@ -66,6 +80,7 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
           type="text"
           value={data.description}
           onChange={onDescriptionChange}
+          onMouseDown={handleInputMouseDown}
           className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="コマンドの説明"
         />

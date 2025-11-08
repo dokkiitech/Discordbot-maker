@@ -46,18 +46,24 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   // 初回に commands からノード・エッジを生成
   // commands が変更されたときもリセット
   useEffect(() => {
-    // props が変更されたことをマーク
-    isPropsUpdateRef.current = true;
+    // JSON.stringify で実際の値の変更を確認
+    const hasCommandsChanged =
+      JSON.stringify(prevCommandsRef.current) !== JSON.stringify(commands);
 
-    const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
-    setNodes(newNodes);
-    setEdges(newEdges);
-    prevCommandsRef.current = commands;
+    if (hasCommandsChanged) {
+      // props が変更されたことをマーク
+      isPropsUpdateRef.current = true;
 
-    // 同期的にフラグを戻す（次のレンダリング前に）
-    Promise.resolve().then(() => {
-      isPropsUpdateRef.current = false;
-    });
+      const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
+      setNodes(newNodes);
+      setEdges(newEdges);
+      prevCommandsRef.current = commands;
+
+      // より信頼性の高いマイクロタスクキューを使用
+      queueMicrotask(() => {
+        isPropsUpdateRef.current = false;
+      });
+    }
   }, [commands, setNodes, setEdges]);
 
   // 接続時の処理
