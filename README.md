@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/ci.yml/badge.svg)](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/ci.yml)
 [![Lint](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/lint.yml/badge.svg)](https://github.com/dokkiitech/Discordbot-maker/actions/workflows/lint.yml)
+[![Total Commits](https://img.shields.io/github/commit-activity/t/dokkiitech/Discordbot-maker)](https://github.com/dokkiitech/Discordbot-maker/commits)
 
 Discord Botテンプレートメーカー - Webブラウザから簡単にDiscord Botを設計・生成し、GitHubにデプロイ
 
