@@ -374,11 +374,53 @@ function generateCommandHandler(
   const functionName = `handle${capitalize(command.name)}`;
 
   if (command.responseType === ResponseType.STATIC_TEXT) {
+    // オプション値の取得ロジック
+    const optionGetters = command.options && command.options.length > 0
+      ? command.options.map(opt => {
+          return `  const ${opt.name} = interaction.data.options?.find((o: any) => o.name === '${opt.name}')?.value;`;
+        }).join('\n')
+      : '';
+
+    // テンプレート文字列の処理
+    let contentExpression = `\`${command.staticText || 'Hello from ' + command.name}\``;
+
+    // {optionName} を ${optionName} に置換
+    if (command.options && command.options.length > 0) {
+      command.options.forEach(opt => {
+        const regex = new RegExp(`\\{${opt.name}\\}`, 'g');
+        contentExpression = contentExpression.replace(regex, `\${${opt.name}}`);
+      });
+    }
+
+    // {random(...)} パターンを処理
+    // 例: {random(1, 6)} → ランダム関数呼び出し
+    // 例: {random("表", "裏")} → 配列からランダム選択
+    contentExpression = contentExpression.replace(
+      /\{random\((.*?)\)\}/g,
+      (match, args) => {
+        // 数値範囲の場合: random(1, 6) → Math.floor(Math.random() * (6 - 1 + 1)) + 1
+        if (/^\d+\s*,\s*[\w\d\s|]+$/.test(args.trim())) {
+          const parts = args.split(',').map((s: string) => s.trim());
+          if (parts.length === 2) {
+            const min = parts[0];
+            const max = parts[1];
+            return `\${Math.floor(Math.random() * (${max} - ${min} + 1)) + ${min}}`;
+          }
+        }
+        // 文字列配列の場合: random("表", "裏") → ['表', '裏'][Math.floor(Math.random() * 2)]
+        const items = args.split(',').map((s: string) => s.trim());
+        return `\${[${items.join(', ')}][Math.floor(Math.random() * ${items.length})]}`;
+      }
+    );
+
     return `async function ${functionName}(interaction: any, env: Env): Promise<Response> {
+${optionGetters}
+  const content = ${contentExpression};
+
   return Response.json({
     type: 4,
     data: {
-      content: '${command.staticText || 'Hello from ' + command.name}',
+      content,
     },
   });
 }`;
@@ -798,8 +840,53 @@ function generateGatewayCommandHandler(
   const functionName = `handle${capitalize(command.name)}`;
 
   if (command.responseType === ResponseType.STATIC_TEXT) {
+    // オプション値の取得ロジック
+    const optionGetters = command.options && command.options.length > 0
+      ? command.options.map(opt => {
+          const getterMethod = opt.type === 'integer' ? 'getInteger' :
+                             opt.type === 'boolean' ? 'getBoolean' :
+                             opt.type === 'user' ? 'getUser' :
+                             opt.type === 'channel' ? 'getChannel' :
+                             opt.type === 'role' ? 'getRole' : 'getString';
+          return `  const ${opt.name} = interaction.options.${getterMethod}('${opt.name}')${opt.required ? '' : ' || null'};`;
+        }).join('\n')
+      : '';
+
+    // テンプレート文字列の処理
+    let contentExpression = `\`${command.staticText || 'Hello from ' + command.name}\``;
+
+    // {optionName} を ${optionName} に置換
+    if (command.options && command.options.length > 0) {
+      command.options.forEach(opt => {
+        const regex = new RegExp(`\\{${opt.name}\\}`, 'g');
+        contentExpression = contentExpression.replace(regex, `\${${opt.name}}`);
+      });
+    }
+
+    // {random(...)} パターンを処理
+    contentExpression = contentExpression.replace(
+      /\{random\((.*?)\)\}/g,
+      (match, args) => {
+        // 数値範囲の場合
+        if (/^\d+\s*,\s*[\w\d\s|]+$/.test(args.trim())) {
+          const parts = args.split(',').map((s: string) => s.trim());
+          if (parts.length === 2) {
+            const min = parts[0];
+            const max = parts[1];
+            return `\${Math.floor(Math.random() * (${max} - ${min} + 1)) + ${min}}`;
+          }
+        }
+        // 文字列配列の場合
+        const items = args.split(',').map((s: string) => s.trim());
+        return `\${[${items.join(', ')}][Math.floor(Math.random() * ${items.length})]}`;
+      }
+    );
+
     return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
-  await interaction.reply('${command.staticText || 'Hello from ' + command.name}');
+${optionGetters}
+  const content = ${contentExpression};
+
+  await interaction.reply(content);
 }`;
   }
 
