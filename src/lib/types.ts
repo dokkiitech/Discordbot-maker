@@ -23,7 +23,7 @@ export enum BotDeploymentType {
  */
 export const ApiProfileSchema = z.object({
   id: z.string(),
-  name: z.string().min(1, 'プロファイル名は必須です'),
+  name: z.string().min(1, '⚠️ これは必須の項目です'),
   baseUrl: z.string().url('有効なURLを入力してください'),
   authType: z.nativeEnum(AuthType),
   apiKey: z.string().optional(),
@@ -38,8 +38,8 @@ export type ApiProfile = z.infer<typeof ApiProfileSchema>;
  * スラッシュコマンドのオプション
  */
 export const CommandOptionSchema = z.object({
-  name: z.string().min(1, 'オプション名は必須です'),
-  description: z.string().min(1, '説明は必須です'),
+  name: z.string().min(1, '⚠️ これは必須の項目です'),
+  description: z.string().min(1, '⚠️ これは必須の項目です'),
   type: z.enum(['string', 'integer', 'boolean', 'user', 'channel', 'role']),
   required: z.boolean(),
 });
@@ -60,9 +60,9 @@ export enum ResponseType {
 export const SlashCommandSchema = z.object({
   id: z.string(),
   name: z.string()
-    .min(1, 'コマンド名は必須です')
+    .min(1, '⚠️ これは必須の項目です')
     .regex(/^[a-z0-9_-]+$/, 'コマンド名は小文字、数字、ハイフン、アンダースコアのみ使用できます'),
-  description: z.string().min(1, '説明は必須です').max(100, '説明は100文字以内にしてください'),
+  description: z.string().min(1, '⚠️ これは必須の項目です').max(100, '説明は100文字以内にしてください'),
   options: z.array(CommandOptionSchema).optional(),
   responseType: z.nativeEnum(ResponseType),
   staticText: z.string().optional(),
@@ -78,9 +78,9 @@ export type SlashCommand = z.infer<typeof SlashCommandSchema>;
  */
 export const RepositoryConfigSchema = z.object({
   name: z.string()
-    .min(1, 'リポジトリ名は必須です')
+    .min(1, '⚠️ これは必須の項目です')
     .regex(/^[a-zA-Z0-9_-]+$/, 'リポジトリ名は英数字、ハイフン、アンダースコアのみ使用できます'),
-  branch: z.string().min(1, 'ブランチ名は必須です'),
+  branch: z.string().min(1, '⚠️ これは必須の項目です'),
   description: z.string().optional(),
   isPrivate: z.boolean(),
 });
@@ -91,7 +91,7 @@ export type RepositoryConfig = z.infer<typeof RepositoryConfigSchema>;
  * Discord Bot設定のスキーマ
  */
 export const BotConfigSchema = z.object({
-  name: z.string().min(1, 'Bot名は必須です'),
+  name: z.string().min(1, '⚠️ これは必須の項目です'),
   description: z.string().optional(),
   applicationId: z.string().optional(),
   publicKey: z.string().optional(),
