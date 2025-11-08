@@ -449,11 +449,46 @@ ${optionGetters}
     urlParams = `url.searchParams.set('${profile.apiKeyName}', env.${profile.envVarKey});`;
   }
 
-  const customLogic = command.codeSnippet || `
+  // カスタムロジックまたはフィールドマッピングに基づく整形出力を生成
+  let customLogic: string;
+
+  if (command.codeSnippet) {
+    // ユーザー定義のカスタムロジック
+    customLogic = command.codeSnippet;
+  } else if (command.fieldMappings && command.fieldMappings.length > 0) {
+    // フィールドマッピングに基づく整形出力
+    const mappingLogic = command.fieldMappings.map(mapping => {
+      const fieldAccessor = `data.${mapping.fieldPath}`;
+      let formatStr = mapping.formatString || `{${mapping.fieldPath}}`;
+
+      // formatString内の{fieldPath}を実際の値で置換
+      const fieldPattern = new RegExp(`\\{${mapping.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+      formatStr = formatStr.replace(fieldPattern, `\${${fieldAccessor}}`);
+
+      // 他のフィールド参照も置換（ネストされたフィールド対応）
+      command.fieldMappings?.forEach(m => {
+        const pattern = new RegExp(`\\{${m.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+        formatStr = formatStr.replace(pattern, `\${data.${m.fieldPath}}`);
+      });
+
+      return `    if (${fieldAccessor} !== null && ${fieldAccessor} !== undefined) parts.push(\`${formatStr}\`);`;
+    }).join('\n');
+
+    customLogic = `
+    const data = await apiResponse.json();
+    const parts: string[] = [];
+${mappingLogic}
+    return {
+      content: parts.join('\\n'),
+    };`;
+  } else {
+    // デフォルト: 生のJSON出力
+    customLogic = `
     const data = await apiResponse.json();
     return {
       content: JSON.stringify(data, null, 2),
     };`;
+  }
 
   // エンドポイント内の変数を置換するロジックを生成（Cloudflare Workers版）
   const endpointVariableReplacementCF = command.options && command.options.length > 0
@@ -910,9 +945,42 @@ ${optionGetters}
     urlParams = `url.searchParams.set('${profile.apiKeyName}', process.env.${profile.envVarKey}!);`;
   }
 
-  const customLogic = command.codeSnippet || `
+  // カスタムロジックまたはフィールドマッピングに基づく整形出力を生成
+  let customLogic: string;
+
+  if (command.codeSnippet) {
+    // ユーザー定義のカスタムロジック
+    customLogic = command.codeSnippet;
+  } else if (command.fieldMappings && command.fieldMappings.length > 0) {
+    // フィールドマッピングに基づく整形出力
+    const mappingLogic = command.fieldMappings.map(mapping => {
+      const fieldAccessor = `data.${mapping.fieldPath}`;
+      let formatStr = mapping.formatString || `{${mapping.fieldPath}}`;
+
+      // formatString内の{fieldPath}を実際の値で置換
+      const fieldPattern = new RegExp(`\\{${mapping.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+      formatStr = formatStr.replace(fieldPattern, `\${${fieldAccessor}}`);
+
+      // 他のフィールド参照も置換（ネストされたフィールド対応）
+      command.fieldMappings?.forEach(m => {
+        const pattern = new RegExp(`\\{${m.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+        formatStr = formatStr.replace(pattern, `\${data.${m.fieldPath}}`);
+      });
+
+      return `    if (${fieldAccessor} !== null && ${fieldAccessor} !== undefined) parts.push(\`${formatStr}\`);`;
+    }).join('\n');
+
+    customLogic = `
+    const data = await apiResponse.json();
+    const parts: string[] = [];
+${mappingLogic}
+    return parts.join('\\n');`;
+  } else {
+    // デフォルト: 生のJSON出力
+    customLogic = `
     const data = await apiResponse.json();
     return JSON.stringify(data, null, 2);`;
+  }
 
   // エンドポイント内の変数を置換するロジックを生成
   const endpointVariableReplacement = command.options && command.options.length > 0
