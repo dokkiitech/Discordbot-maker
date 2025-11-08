@@ -234,7 +234,7 @@ export function Step4Review({
                       <li>デプロイしたURLの<code>/register?token=</code>エンドポイントにアクセスしてコマンド登録</li>
                     </ol>
                     <Box color="text-status-warning" margin={{ top: 's' }}>
-                      ⚠️ 注意: Botは「オフライン」と表示されますが、スラッシュコマンドは正常に動作します。
+                      注意: Botは「オフライン」と表示されますが、スラッシュコマンドは正常に動作します。
                     </Box>
                   </>
                 ) : (
@@ -279,7 +279,7 @@ pm2 restart ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # 再起動`}
                     </Box>
 
                     <Box color="text-status-success" margin={{ top: 's' }}>
-                      ✅ 起動すると、Botが「オンライン」として表示され、スラッシュコマンドが自動登録されます。
+                      起動すると、Botが「オンライン」として表示され、スラッシュコマンドが自動登録されます。
                     </Box>
                   </>
                 )}

@@ -3,6 +3,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { CheckCircle2, AlertCircle, Package } from 'lucide-react';
 import Container from '@cloudscape-design/components/container';
 import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
@@ -311,24 +312,48 @@ export function Step1Repository({
                             value: BotDeploymentType.INTERACTIONS_ENDPOINT,
                             label: 'Interactions Endpoint (Cloudflare Workers)',
                             description: (
-                              <>
-                                ✅ サーバーレス（無料枠が大きい）<br />
-                                ✅ スラッシュコマンド対応<br />
-                                ⚠️ Botは「オフライン」表示（機能は正常）<br />
-                                📦 デプロイ先: Cloudflare Workers
-                              </>
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                                  <span>サーバーレス（無料枠が大きい）</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                                  <span>スラッシュコマンド対応</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4 text-warning flex-shrink-0" />
+                                  <span>Botは「オフライン」表示（機能は正常）</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Package className="w-4 h-4 text-info flex-shrink-0" />
+                                  <span>デプロイ先: Cloudflare Workers</span>
+                                </div>
+                              </div>
                             ),
                           },
                           {
                             value: BotDeploymentType.GATEWAY,
                             label: 'Gateway (discord.js)',
                             description: (
-                              <>
-                                ✅ Botが「オンライン」表示<br />
-                                ✅ リアルタイムイベント取得可能<br />
-                                ⚠️ 常時稼働サーバーが必要<br />
-                                📦 デプロイ先: Railway / Render / VPS
-                              </>
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                                  <span>Botが「オンライン」表示</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                                  <span>リアルタイムイベント取得可能</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4 text-warning flex-shrink-0" />
+                                  <span>常時稼働サーバーが必要</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Package className="w-4 h-4 text-info flex-shrink-0" />
+                                  <span>デプロイ先: Railway / Render / VPS</span>
+                                </div>
+                              </div>
                             ),
                           },
                         ].map((item) => {
