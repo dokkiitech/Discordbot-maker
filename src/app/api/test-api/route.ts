@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // パラメータを置換（例: {zipcode} → 実際の値）
     Object.entries(testParams).forEach(([key, value]) => {
-      url = url.replace(`{${key}}`, encodeURIComponent(value));
+      url = url.replace(`{${key}}`, encodeURIComponent(String(value)));
     });
 
     // URLオブジェクトを作成

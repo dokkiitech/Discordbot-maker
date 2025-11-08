@@ -8,14 +8,15 @@ import { ResponseTemplate, generateCustomLogic, createDefaultFieldMappings } fro
 import { getSelectableFields } from '@/lib/api-response-parser';
 import { ApiProfilesContext } from '../ReactFlowEditor';
 
-const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
+const ResponseNodeComponent = ({ data, id }: NodeProps) => {
   const { setNodes } = useReactFlow();
   const apiProfiles = useContext(ApiProfilesContext);
-  const [responseType, setResponseType] = useState(data.responseType);
-  const [staticText, setStaticText] = useState(data.staticText || '');
-  const [apiProfileId, setApiProfileId] = useState(data.apiProfileId || '');
-  const [apiEndpoint, setApiEndpoint] = useState(data.apiEndpoint || '');
-  const [codeSnippet, setCodeSnippet] = useState(data.codeSnippet || '');
+  const nodeData = data as ResponseNodeData;
+  const [responseType, setResponseType] = useState(nodeData.responseType);
+  const [staticText, setStaticText] = useState(nodeData.staticText || '');
+  const [apiProfileId, setApiProfileId] = useState(nodeData.apiProfileId || '');
+  const [apiEndpoint, setApiEndpoint] = useState(nodeData.apiEndpoint || '');
+  const [codeSnippet, setCodeSnippet] = useState(nodeData.codeSnippet || '');
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<ApiTestResult | null>(null);
   const [showFieldSelector, setShowFieldSelector] = useState(false);
@@ -23,14 +24,15 @@ const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
   const [selectedTemplate, setSelectedTemplate] = useState<ResponseTemplate>(ResponseTemplate.SIMPLE_TEXT);
 
   useEffect(() => {
-    setResponseType(data.responseType);
-    setStaticText(data.staticText || '');
-    setApiProfileId(data.apiProfileId || '');
-    setApiEndpoint(data.apiEndpoint || '');
-    setCodeSnippet(data.codeSnippet || '');
-  }, [data.responseType, data.staticText, data.apiProfileId, data.apiEndpoint, data.codeSnippet]);
+    const d = data as ResponseNodeData;
+    setResponseType(d.responseType);
+    setStaticText(d.staticText || '');
+    setApiProfileId(d.apiProfileId || '');
+    setApiEndpoint(d.apiEndpoint || '');
+    setCodeSnippet(d.codeSnippet || '');
+  }, [data]);
 
-  const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>) => {
     evt.stopPropagation();
   }, []);
 

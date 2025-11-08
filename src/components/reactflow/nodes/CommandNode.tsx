@@ -4,16 +4,18 @@ import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { CommandNodeData } from '@/lib/reactflow-types';
 
-const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
+const CommandNodeComponent = ({ data, id }: NodeProps) => {
   const { setNodes } = useReactFlow();
-  const [name, setName] = useState(data.name);
-  const [description, setDescription] = useState(data.description);
+  const nodeData = data as CommandNodeData;
+  const [name, setName] = useState(nodeData.name);
+  const [description, setDescription] = useState(nodeData.description);
 
   // プロップが外部から変更されたときのみ同期（例：他のノードから影響を受けた場合）
   useEffect(() => {
-    setName(data.name);
-    setDescription(data.description);
-  }, [data.name, data.description]);
+    const d = data as CommandNodeData;
+    setName(d.name);
+    setDescription(d.description);
+  }, [data]);
 
   const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement>) => {
     evt.stopPropagation();
