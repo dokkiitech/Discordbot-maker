@@ -161,10 +161,15 @@ function generateJsonFormattedCode(fieldMappings: FieldMapping[]): string {
 
 /**
  * フィールドパスをJavaScriptのプロパティアクセス形式に変換
- * 例: "data.main.temp" → "data.main.temp"
- * 例: "items[0].name" → "items[0].name"
+ * 例: "main.temp" → "data.main.temp"
+ * 例: "[0].name" → "data[0].name"
+ * 例: "items[0].name" → "data.items[0].name"
  */
 function pathToAccessor(path: string): string {
+  // パスが配列アクセスで始まる場合（例: "[0].word"）、ドットを追加しない
+  if (path.startsWith('[')) {
+    return `data${path}`;
+  }
   return `data.${path}`;
 }
 
