@@ -12,7 +12,7 @@
   "dependencies": {
     "@cloudscape-design/components": "^3.0.1128",
     "@cloudscape-design/global-styles": "^1.0.47",
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^5.2.2",
     "@octokit/rest": "^22.0.1",
     "clsx": "^2.1.1",
     "firebase": "^12.5.0",
