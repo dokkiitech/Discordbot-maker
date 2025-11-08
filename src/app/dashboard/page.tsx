@@ -72,6 +72,29 @@ export default function DashboardPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleSubmit = async () => {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        repository: repositoryConfig,
+        botConfig,
+        apiProfiles,
+        commands,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate bot');
+    }
+
+    const result = await response.json();
+    return result;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -142,6 +165,7 @@ export default function DashboardPage() {
                 apiProfiles={apiProfiles}
                 commands={commands}
                 onPrev={handlePrev}
+                onSubmit={handleSubmit}
               />
             )}
           </div>

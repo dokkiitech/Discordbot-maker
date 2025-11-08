@@ -1,9 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Download, Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
+import Container from '@cloudscape-design/components/container';
+import Header from '@cloudscape-design/components/header';
+import SpaceBetween from '@cloudscape-design/components/space-between';
+import Button from '@cloudscape-design/components/button';
+import Form from '@cloudscape-design/components/form';
+import Box from '@cloudscape-design/components/box';
+import Alert from '@cloudscape-design/components/alert';
+import Table from '@cloudscape-design/components/table';
+import Link from '@cloudscape-design/components/link';
+import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { Download, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import type { RepositoryConfig, BotConfig, ApiProfile, SlashCommand } from '@/lib/types';
 import { BotDeploymentType } from '@/lib/types';
 import { downloadFile, generateEnvFile } from '@/lib/utils';
@@ -14,6 +22,7 @@ interface Step4ReviewProps {
   apiProfiles: ApiProfile[];
   commands: SlashCommand[];
   onPrev: () => void;
+  onSubmit: () => Promise<void>;
 }
 
 export function Step4Review({
@@ -22,59 +31,50 @@ export function Step4Review({
   apiProfiles,
   commands,
   onPrev,
+  onSubmit,
 }: Step4ReviewProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [generationComplete, setGenerationComplete] = useState(false);
-  const [repoUrl, setRepoUrl] = useState<string>('');
-  const [envVariables, setEnvVariables] = useState<Record<string, string>>({});
-  const [copiedEnv, setCopiedEnv] = useState(false);
+  const [repoUrl, setRepoUrl] = useState('');
+  const [copiedVar, setCopiedVar] = useState<string | null>(null);
+
+  const envVariables: Record<string, string> = {};
+  if (botConfig.deploymentType === BotDeploymentType.INTERACTIONS_ENDPOINT) {
+    envVariables['DISCORD_APPLICATION_ID'] = botConfig.applicationId || 'your_discord_application_id';
+    envVariables['DISCORD_PUBLIC_KEY'] = botConfig.publicKey || 'your_discord_public_key';
+    envVariables['DISCORD_BOT_TOKEN'] = botConfig.botToken || 'your_discord_bot_token';
+  } else {
+    envVariables['DISCORD_BOT_TOKEN'] = botConfig.botToken || 'your_discord_bot_token';
+    envVariables['DISCORD_APPLICATION_ID'] = botConfig.applicationId || 'your_discord_application_id';
+  }
+
+  apiProfiles.forEach((profile) => {
+    envVariables[profile.envVarKey] = profile.apiKey || 'your_api_key';
+    if (profile.envVarUrl) envVariables[profile.envVarUrl] = profile.baseUrl;
+  });
 
   const handleGenerate = async () => {
-    setIsGenerating(true);
-
+    setGenerating(true);
     try {
-      // コード生成APIを呼び出し
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          repository: repositoryConfig,
-          botConfig,
-          apiProfiles,
-          commands,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        // エラーメッセージを表示
-        const errorMessage = result.error || 'コード生成に失敗しました';
-        alert(errorMessage);
-        return;
-      }
-
-      setRepoUrl(result.repoUrl);
-      setEnvVariables(result.envVariables);
+      const result = await onSubmit();
       setGenerationComplete(true);
+      setRepoUrl((result as any)?.repoUrl || '');
     } catch (error) {
-      console.error('Generation error:', error);
-      alert('エラーが発生しました。もう一度お試しください。');
+      console.error('Generation failed:', error);
     } finally {
-      setIsGenerating(false);
+      setGenerating(false);
     }
   };
 
-  const handleCopyEnv = () => {
-    const envContent = generateEnvFile(envVariables);
-    navigator.clipboard.writeText(envContent);
-    setCopiedEnv(true);
-    setTimeout(() => setCopiedEnv(false), 2000);
+  const handleCopyEnvVar = (key: string, value: string) => {
+    navigator.clipboard.writeText(`${key}=${value}`);
+    setCopiedVar(key);
+    setTimeout(() => setCopiedVar(null), 2000);
   };
 
   const handleDownloadEnv = () => {
     const envContent = generateEnvFile(envVariables);
-    downloadFile(envContent, '.env.example', 'text/plain');
+    downloadFile(envContent, '.env', 'text/plain');
   };
 
   const handleDownloadWranglerEnv = () => {
@@ -88,191 +88,161 @@ export function Step4Review({
     const isGateway = botConfig.deploymentType === BotDeploymentType.GATEWAY;
 
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Check className="w-8 h-8 text-green-600" />
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">生成完了！</h2>
-              <p className="text-gray-600 mt-1">
-                GitHubリポジトリにコードがコミットされました
-              </p>
-            </div>
-          </div>
-        </CardHeader>
+      <Form>
+        <SpaceBetween size="l">
+          <Container>
+            <SpaceBetween size="m">
+              <StatusIndicator type="success">
+                <Box variant="h2">生成完了!</Box>
+              </StatusIndicator>
+              <Box>
+                GitHubリポジトリが正常に作成されました
+                {repoUrl && (
+                  <>
+                    :{' '}
+                    <Link href={repoUrl} external>
+                      {repoUrl}
+                    </Link>
+                  </>
+                )}
+              </Box>
+            </SpaceBetween>
+          </Container>
 
-        <CardBody className="space-y-6">
-          {/* リポジトリリンク */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">GitHubリポジトリ</h3>
-            <a
-              href={repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline flex items-center gap-1"
-            >
-              {repoUrl}
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-
-          {/* 環境変数設定手順 */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              次のステップ: 環境変数の設定
-            </h3>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700 mb-3">
+          <Container
+            header={
+              <Header variant="h2">次のステップ: 環境変数の設定</Header>
+            }
+          >
+            <SpaceBetween size="m">
+              <Alert type="warning">
                 {isGateway
                   ? 'Botをデプロイする前に、以下の環境変数を設定してください。'
-                  : 'Botをデプロイする前に、以下の環境変数をCloudflare Workersに設定してください。'
-                }
-              </p>
+                  : 'Botをデプロイする前に、以下の環境変数をCloudflare Workersに設定してください。'}
+              </Alert>
 
               {!isGateway && (
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold">設定方法:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                <Box>
+                  <Box variant="h4">設定方法:</Box>
+                  <ol>
                     <li>Cloudflare Dashboardにログイン</li>
                     <li>Workers & Pages → あなたのWorkerを選択</li>
                     <li>Settings → Variables → Edit variables</li>
                     <li>以下の変数を追加</li>
                   </ol>
-                </div>
+                </Box>
               )}
+
               {isGateway && (
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold">設定方法:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                <Box>
+                  <Box variant="h4">設定方法:</Box>
+                  <ol>
                     <li>リポジトリをクローン</li>
-                    <li>プロジェクトルートに<code className="bg-white px-1 rounded">.env</code>ファイルを作成</li>
+                    <li>プロジェクトルートに<code>.env</code>ファイルを作成</li>
                     <li>以下の環境変数を記載</li>
                     <li>デプロイ先（Railway/Render等）で同じ環境変数を設定</li>
                   </ol>
-                </div>
+                </Box>
               )}
-            </div>
 
-            {/* 環境変数テーブル */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b flex items-center justify-between">
-                <h4 className="font-semibold text-gray-900">環境変数一覧</h4>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={handleCopyEnv}
+              <Container
+                header={
+                  <Header
+                    variant="h3"
+                    actions={
+                      <SpaceBetween direction="horizontal" size="xs">
+                        <Button
+                          iconName="download"
+                          onClick={handleDownloadEnv}
+                        >
+                          .envダウンロード
+                        </Button>
+                        {!isGateway && (
+                          <Button
+                            iconName="download"
+                            onClick={handleDownloadWranglerEnv}
+                          >
+                            .dev.varsダウンロード
+                          </Button>
+                        )}
+                      </SpaceBetween>
+                    }
                   >
-                    {copiedEnv ? (
-                      <>
-                        <Check className="w-4 h-4 mr-1" />
-                        コピー済み
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-1" />
-                        コピー
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={handleDownloadEnv}
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    .envダウンロード
-                  </Button>
-                  {!isGateway && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={handleDownloadWranglerEnv}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      .dev.varsダウンロード
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    環境変数一覧
+                  </Header>
+                }
+              >
+                <Table
+                  columnDefinitions={[
+                    {
+                      id: 'key',
+                      header: '変数名',
+                      cell: (item: [string, string]) => item[0],
+                    },
+                    {
+                      id: 'value',
+                      header: '値',
+                      cell: (item: [string, string]) => (
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{item[1]}</code>
+                      ),
+                    },
+                    {
+                      id: 'actions',
+                      header: 'アクション',
+                      cell: (item: [string, string]) => (
+                        <Button
+                          variant="icon"
+                          iconName="copy"
+                          onClick={() => handleCopyEnvVar(item[0], item[1])}
+                        />
+                      ),
+                    },
+                  ]}
+                  items={Object.entries(envVariables)}
+                  variant="embedded"
+                />
+              </Container>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900">
-                        変数名
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900">
-                        値
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {Object.entries(envVariables).map(([key, value]) => (
-                      <tr key={key}>
-                        <td className="px-4 py-2 text-sm font-mono text-gray-900">
-                          {key}
-                        </td>
-                        <td className="px-4 py-2 text-sm font-mono text-gray-600">
-                          {value}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              <Alert type="info">
+                <Box variant="h4">デプロイ手順</Box>
+                {!isGateway ? (
+                  <>
+                    <ol>
+                      <li>リポジトリをクローン: <code>git clone {repoUrl}</code></li>
+                      <li>依存関係をインストール: <code>npm install</code></li>
+                      <li>環境変数を設定（上記参照）</li>
+                      <li>デプロイ: <code>npx wrangler deploy</code></li>
+                      <li>Discord Developer Portal で Interactions Endpoint URL を設定</li>
+                      <li>デプロイしたURLの<code>/register?token=</code>エンドポイントにアクセスしてコマンド登録</li>
+                    </ol>
+                    <Box color="text-status-warning" margin={{ top: 's' }}>
+                      ⚠️ 注意: Botは「オフライン」と表示されますが、スラッシュコマンドは正常に動作します。
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Box variant="h5">基本的な手順:</Box>
+                    <ol>
+                      <li>リポジトリをクローン: <code>git clone {repoUrl}</code></li>
+                      <li>依存関係をインストール: <code>npm install</code></li>
+                      <li><code>.env</code>ファイルを作成して環境変数を設定（上記参照）</li>
+                      <li>ビルド: <code>npm run build</code></li>
+                      <li>ローカルでテスト: <code>npm run dev</code></li>
+                    </ol>
 
-            {/* デプロイ手順 */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 mb-2">デプロイ手順</h4>
-              {!isGateway ? (
-                <>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 mb-3">
-                    <li>リポジトリをクローン: <code className="bg-white px-1 rounded">git clone {repoUrl}</code></li>
-                    <li>依存関係をインストール: <code className="bg-white px-1 rounded">npm install</code></li>
-                    <li>環境変数を設定（上記参照）</li>
-                    <li>デプロイ: <code className="bg-white px-1 rounded">npx wrangler deploy</code></li>
-                    <li>Discord Developer Portal で Interactions Endpoint URL を設定</li>
-                    <li>デプロイしたURLの<code className="bg-white px-1 rounded">/register?token=</code>エンドポイントにアクセスしてコマンド登録</li>
-                  </ol>
-                  <p className="text-xs text-gray-600 mt-2">
-                    ⚠️ 注意: Botは「オフライン」と表示されますが、スラッシュコマンドは正常に動作します。
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="font-semibold text-sm mb-2">基本的な手順:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                        <li>リポジトリをクローン: <code className="bg-white px-1 rounded">git clone {repoUrl}</code></li>
-                        <li>依存関係をインストール: <code className="bg-white px-1 rounded">npm install</code></li>
-                        <li><code className="bg-white px-1 rounded">.env</code>ファイルを作成して環境変数を設定（上記参照）</li>
-                        <li>ビルド: <code className="bg-white px-1 rounded">npm run build</code></li>
-                        <li>ローカルでテスト: <code className="bg-white px-1 rounded">npm run dev</code></li>
-                      </ol>
-                    </div>
+                    <Box variant="h5" margin={{ top: 'm' }}>デプロイ方法:</Box>
+                    <Box>
+                      <Box variant="strong">Railway / Render (推奨)</Box>
+                      <ul>
+                        <li>GitHubリポジトリをインポート</li>
+                        <li>環境変数を設定</li>
+                        <li>自動デプロイ完了</li>
+                      </ul>
+                    </Box>
 
-                    <div>
-                      <p className="font-semibold text-sm mb-2">デプロイ方法:</p>
-                      <div className="space-y-3">
-                        <div className="bg-white rounded p-3 border border-blue-200">
-                          <p className="font-semibold text-sm text-blue-900 mb-1">Railway / Render (推奨)</p>
-                          <ul className="text-xs text-gray-700 space-y-1">
-                            <li>• GitHubリポジトリをインポート</li>
-                            <li>• 環境変数を設定</li>
-                            <li>• 自動デプロイ完了</li>
-                          </ul>
-                        </div>
-
-                        <div className="bg-white rounded p-3 border border-blue-200">
-                          <p className="font-semibold text-sm text-blue-900 mb-1">VPS/EC2 + PM2</p>
-                          <div className="text-xs text-gray-700 space-y-1">
-                            <p>PM2を使用した本番環境管理:</p>
-                            <pre className="bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+                    <Box margin={{ top: 's' }}>
+                      <Box variant="strong">VPS/EC2 + PM2</Box>
+                      <pre className="bg-gray-50 p-2 rounded mt-1 overflow-x-auto text-xs">
 {`# PM2をインストール
 npm install -g pm2
 
@@ -287,138 +257,122 @@ pm2 save
 pm2 status              # ステータス確認
 pm2 logs ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # ログ確認
 pm2 restart ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # 再起動`}
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-green-600 mt-3">
-                    ✅ 起動すると、Botが「オンライン」として表示され、スラッシュコマンドが自動登録されます。
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </CardBody>
+                      </pre>
+                    </Box>
 
-        <CardFooter>
-          <div className="flex justify-between w-full">
-            <Button variant="secondary" onClick={() => window.location.href = '/dashboard'}>
-              新しいBotを作成
-            </Button>
-            <a href={repoUrl} target="_blank" rel="noopener noreferrer">
-              <Button>
-                <ExternalLink className="w-4 h-4 mr-2" />
-                GitHubで確認
+                    <Box color="text-status-success" margin={{ top: 's' }}>
+                      ✅ 起動すると、Botが「オンライン」として表示され、スラッシュコマンドが自動登録されます。
+                    </Box>
+                  </>
+                )}
+              </Alert>
+            </SpaceBetween>
+          </Container>
+
+          <Container>
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => window.location.href = '/dashboard'}>
+                新しいBotを作成
               </Button>
-            </a>
-          </div>
-        </CardFooter>
-      </Card>
+              {repoUrl && (
+                <Button
+                  variant="primary"
+                  iconName="external"
+                  iconAlign="right"
+                  onClick={() => window.open(repoUrl, '_blank')}
+                >
+                  リポジトリを開く
+                </Button>
+              )}
+            </SpaceBetween>
+          </Container>
+        </SpaceBetween>
+      </Form>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-2xl font-bold text-gray-900">
-          ステップ 4: 確認と生成
-        </h2>
-        <p className="text-gray-600 mt-1">
-          設定内容を確認して、コードを生成してください
-        </p>
-      </CardHeader>
-
-      <CardBody className="space-y-6">
-        {/* リポジトリ設定 */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">リポジトリ設定</h3>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">リポジトリ名:</span>
-              <span className="font-mono">{repositoryConfig.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">ブランチ:</span>
-              <span className="font-mono">{repositoryConfig.branch}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">公開設定:</span>
-              <span>{repositoryConfig.isPrivate ? 'プライベート' : 'パブリック'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bot設定 */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Bot設定</h3>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Bot名:</span>
-              <span>{botConfig.name}</span>
-            </div>
-            {botConfig.description && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">説明:</span>
-                <span className="text-right">{botConfig.description}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* APIプロファイル */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            APIプロファイル ({apiProfiles.length})
-          </h3>
-          {apiProfiles.length > 0 ? (
-            <div className="space-y-2">
-              {apiProfiles.map((profile) => (
-                <div key={profile.id} className="bg-gray-50 rounded-lg p-3 text-sm">
-                  <div className="font-semibold">{profile.name}</div>
-                  <div className="text-gray-600 text-xs">{profile.baseUrl}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">設定なし</p>
-          )}
-        </div>
-
-        {/* コマンド */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            スラッシュコマンド ({commands.length})
-          </h3>
-          <div className="space-y-2">
-            {commands.map((command) => (
-              <div key={command.id} className="bg-gray-50 rounded-lg p-3 text-sm">
-                <div className="font-semibold">/{command.name}</div>
-                <div className="text-gray-600 text-xs">{command.description}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardBody>
-
-      <CardFooter>
-        <div className="flex justify-between w-full">
-          <Button variant="secondary" onClick={onPrev} disabled={isGenerating}>
+    <Form
+      actions={
+        <SpaceBetween direction="horizontal" size="xs">
+          <Button variant="link" onClick={onPrev} disabled={generating}>
             戻る
           </Button>
-          <Button onClick={handleGenerate} disabled={isGenerating}>
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                生成中...
-              </>
-            ) : (
-              <>生成してコミット</>
-            )}
+          <Button
+            variant="primary"
+            onClick={handleGenerate}
+            disabled={generating}
+            loading={generating}
+          >
+            {generating ? '生成中...' : '生成してコミット'}
           </Button>
-        </div>
-      </CardFooter>
-    </Card>
+        </SpaceBetween>
+      }
+    >
+      <SpaceBetween size="l">
+        <Container
+          header={
+            <Header
+              variant="h2"
+              description="設定内容を確認して、問題なければ生成してください"
+            >
+              ステップ 4: 確認と生成
+            </Header>
+          }
+        >
+          <SpaceBetween size="m">
+            <Container header={<Header variant="h3">リポジトリ設定</Header>}>
+              <SpaceBetween size="xs">
+                <Box><Box variant="strong">名前:</Box> {repositoryConfig.name}</Box>
+                <Box><Box variant="strong">ブランチ:</Box> {repositoryConfig.branch}</Box>
+                <Box><Box variant="strong">説明:</Box> {repositoryConfig.description || '(なし)'}</Box>
+                <Box><Box variant="strong">プライベート:</Box> {repositoryConfig.isPrivate ? 'はい' : 'いいえ'}</Box>
+              </SpaceBetween>
+            </Container>
+
+            <Container header={<Header variant="h3">Bot設定</Header>}>
+              <SpaceBetween size="xs">
+                <Box><Box variant="strong">Bot名:</Box> {botConfig.name}</Box>
+                <Box><Box variant="strong">説明:</Box> {botConfig.description || '(なし)'}</Box>
+                <Box>
+                  <Box variant="strong">デプロイメントタイプ:</Box>{' '}
+                  {botConfig.deploymentType === BotDeploymentType.INTERACTIONS_ENDPOINT
+                    ? 'Interactions Endpoint (Cloudflare Workers)'
+                    : 'Gateway (discord.js)'}
+                </Box>
+              </SpaceBetween>
+            </Container>
+
+            <Container header={<Header variant="h3">APIプロファイル ({apiProfiles.length})</Header>}>
+              {apiProfiles.length > 0 ? (
+                <SpaceBetween size="xs">
+                  {apiProfiles.map((profile) => (
+                    <Box key={profile.id}>
+                      • <Box variant="strong">{profile.name}</Box> - {profile.baseUrl}
+                    </Box>
+                  ))}
+                </SpaceBetween>
+              ) : (
+                <Box color="text-status-inactive">APIプロファイルが設定されていません</Box>
+              )}
+            </Container>
+
+            <Container header={<Header variant="h3">スラッシュコマンド ({commands.length})</Header>}>
+              {commands.length > 0 ? (
+                <SpaceBetween size="xs">
+                  {commands.map((cmd) => (
+                    <Box key={cmd.id}>
+                      • <Box variant="strong">/{cmd.name}</Box> - {cmd.description}
+                    </Box>
+                  ))}
+                </SpaceBetween>
+              ) : (
+                <Box color="text-status-inactive">コマンドが設定されていません</Box>
+              )}
+            </Container>
+          </SpaceBetween>
+        </Container>
+      </SpaceBetween>
+    </Form>
   );
 }

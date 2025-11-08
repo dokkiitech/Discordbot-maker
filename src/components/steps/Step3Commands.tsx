@@ -1,12 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
-import { Button } from '@/components/ui/Button';
+import Container from '@cloudscape-design/components/container';
+import Header from '@cloudscape-design/components/header';
+import SpaceBetween from '@cloudscape-design/components/space-between';
+import FormField from '@cloudscape-design/components/form-field';
+import Input from '@cloudscape-design/components/input';
+import Select from '@cloudscape-design/components/select';
+import Textarea from '@cloudscape-design/components/textarea';
+import Button from '@cloudscape-design/components/button';
+import Form from '@cloudscape-design/components/form';
+import Box from '@cloudscape-design/components/box';
+import Alert from '@cloudscape-design/components/alert';
 import type { SlashCommand, ApiProfile } from '@/lib/types';
 import { ResponseType } from '@/lib/types';
 
@@ -97,190 +102,196 @@ export function Step3Commands({
   ];
 
   const renderCommandForm = (isEdit: boolean, commandId?: string) => (
-    <div className="space-y-3">
-      <Input
+    <SpaceBetween size="m">
+      <FormField
         label="コマンド名"
-        value={formData.name}
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        placeholder="weather"
-        helperText="小文字、数字、ハイフン、アンダースコアのみ"
-        required
-      />
+        description="小文字、数字、ハイフン、アンダースコアのみ"
+      >
+        <Input
+          value={formData.name || ''}
+          onChange={({ detail }) => setFormData({ ...formData, name: detail.value })}
+          placeholder="weather"
+        />
+      </FormField>
 
-      <Input
-        label="説明"
-        value={formData.description}
-        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        placeholder="天気情報を取得します"
-        required
-      />
+      <FormField label="説明">
+        <Input
+          value={formData.description || ''}
+          onChange={({ detail }) => setFormData({ ...formData, description: detail.value })}
+          placeholder="天気情報を取得します"
+        />
+      </FormField>
 
-      <Select
-        label="応答タイプ"
-        value={formData.responseType}
-        onChange={(e) => setFormData({ ...formData, responseType: e.target.value as ResponseType })}
-        options={responseTypeOptions}
-        required
-      />
+      <FormField label="応答タイプ">
+        <Select
+          selectedOption={responseTypeOptions.find(o => o.value === formData.responseType) || responseTypeOptions[0]}
+          onChange={({ detail }) => setFormData({ ...formData, responseType: detail.selectedOption.value as ResponseType })}
+          options={responseTypeOptions}
+        />
+      </FormField>
 
       {formData.responseType === ResponseType.STATIC_TEXT && (
-        <Textarea
-          label="応答テキスト"
-          value={formData.staticText}
-          onChange={(e) => setFormData({ ...formData, staticText: e.target.value })}
-          placeholder="こんにちは！これは静的な応答です。"
-          rows={3}
-        />
+        <FormField label="応答テキスト">
+          <Textarea
+            value={formData.staticText || ''}
+            onChange={({ detail }) => setFormData({ ...formData, staticText: detail.value })}
+            placeholder="こんにちは！これは静的な応答です。"
+            rows={3}
+          />
+        </FormField>
       )}
 
       {formData.responseType === ResponseType.API_CALL && (
         <>
-          <Select
-            label="使用するAPIプロファイル"
-            value={formData.apiProfileId}
-            onChange={(e) => setFormData({ ...formData, apiProfileId: e.target.value })}
-            options={[
-              { value: '', label: 'APIプロファイルを選択' },
-              ...apiProfiles.map((p) => ({ value: p.id, label: p.name })),
-            ]}
-            required
-          />
+          <FormField label="使用するAPIプロファイル">
+            <Select
+              selectedOption={
+                formData.apiProfileId
+                  ? { value: formData.apiProfileId, label: apiProfiles.find(p => p.id === formData.apiProfileId)?.name || '' }
+                  : { value: '', label: 'APIプロファイルを選択' }
+              }
+              onChange={({ detail }) => setFormData({ ...formData, apiProfileId: detail.selectedOption.value! })}
+              options={[
+                { value: '', label: 'APIプロファイルを選択' },
+                ...apiProfiles.map((p) => ({ value: p.id, label: p.name })),
+              ]}
+            />
+          </FormField>
 
-          <Input
+          <FormField
             label="APIエンドポイント"
-            value={formData.apiEndpoint}
-            onChange={(e) => setFormData({ ...formData, apiEndpoint: e.target.value })}
-            placeholder="weather?q={city}"
-            helperText="ベースURLからの相対パス。変数は{変数名}で指定"
-          />
+            description="ベースURLからの相対パス。変数は{変数名}で指定"
+          >
+            <Input
+              value={formData.apiEndpoint || ''}
+              onChange={({ detail }) => setFormData({ ...formData, apiEndpoint: detail.value })}
+              placeholder="weather?q={city}"
+            />
+          </FormField>
 
-          <Textarea
+          <FormField
             label="カスタムロジック（オプション）"
-            value={formData.codeSnippet}
-            onChange={(e) => setFormData({ ...formData, codeSnippet: e.target.value })}
-            placeholder={`// API応答を処理してDiscord応答を返す
+            description="JavaScriptコード。apiResponseオブジェクトが利用可能"
+          >
+            <Textarea
+              value={formData.codeSnippet || ''}
+              onChange={({ detail }) => setFormData({ ...formData, codeSnippet: detail.value })}
+              placeholder={`// API応答を処理してDiscord応答を返す
 const data = await apiResponse.json();
 return {
   content: \`現在の気温: \${data.main.temp}°C\`
 };`}
-            rows={6}
-            helperText="JavaScriptコード。apiResponseオブジェクトが利用可能"
-          />
+              rows={6}
+            />
+          </FormField>
         </>
       )}
 
-      <div className="flex gap-2">
+      <SpaceBetween direction="horizontal" size="xs">
         <Button
-          type="button"
-          size="sm"
           onClick={() => (isEdit && commandId ? handleUpdate(commandId) : handleAdd())}
           disabled={!formData.name || !formData.description}
         >
-          <Check className="w-4 h-4 mr-1" />
           {isEdit ? '保存' : '追加'}
         </Button>
-        <Button type="button" size="sm" variant="secondary" onClick={cancelEdit}>
-          <X className="w-4 h-4 mr-1" />
+        <Button variant="link" onClick={cancelEdit}>
           キャンセル
         </Button>
-      </div>
-    </div>
+      </SpaceBetween>
+    </SpaceBetween>
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-2xl font-bold text-gray-900">
-          ステップ 3: スラッシュコマンド定義
-        </h2>
-        <p className="text-gray-600 mt-1">
-          Botが応答するスラッシュコマンドを追加してください
-        </p>
-      </CardHeader>
-
-      <CardBody className="space-y-4">
-        {/* 既存のコマンド一覧 */}
-        {commands.map((command) => (
-          <div
-            key={command.id}
-            className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-          >
-            {editingId === command.id ? (
-              renderCommandForm(true, command.id)
-            ) : (
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-semibold text-gray-900">/{command.name}</h4>
-                  <p className="text-sm text-gray-600">{command.description}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    応答: {responseTypeOptions.find(o => o.value === command.responseType)?.label}
-                  </p>
-                  {command.responseType === ResponseType.API_CALL && command.apiProfileId && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      API: {apiProfiles.find(p => p.id === command.apiProfileId)?.name}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(command)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(command.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {/* 新規追加フォーム */}
-        {isAdding && (
-          <div className="border border-blue-300 rounded-lg p-4 bg-blue-50">
-            <h4 className="font-semibold text-gray-900 mb-3">新しいコマンド</h4>
-            {renderCommandForm(false)}
-          </div>
-        )}
-
-        {/* 追加ボタン */}
-        {!isAdding && !editingId && (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsAdding(true)}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            コマンドを追加
-          </Button>
-        )}
-
-        {commands.length === 0 && !isAdding && (
-          <div className="text-center py-8 text-gray-500">
-            <p>まだコマンドが追加されていません</p>
-            <p className="text-sm mt-1">上のボタンから追加してください</p>
-          </div>
-        )}
-      </CardBody>
-
-      <CardFooter>
-        <div className="flex justify-between w-full">
-          <Button type="button" variant="secondary" onClick={onPrev}>
+    <Form
+      actions={
+        <SpaceBetween direction="horizontal" size="xs">
+          <Button variant="link" onClick={onPrev}>
             戻る
           </Button>
-          <Button type="button" onClick={onNext} disabled={commands.length === 0}>
+          <Button variant="primary" onClick={onNext} disabled={commands.length === 0}>
             次へ
           </Button>
-        </div>
-      </CardFooter>
-    </Card>
+        </SpaceBetween>
+      }
+    >
+      <SpaceBetween size="l">
+        <Container
+          header={
+            <Header
+              variant="h2"
+              description="Botが応答するスラッシュコマンドを追加してください"
+            >
+              ステップ 3: スラッシュコマンド定義
+            </Header>
+          }
+        >
+          <SpaceBetween size="l">
+            {/* 既存のコマンド一覧 */}
+            {commands.map((command) => (
+              <Container key={command.id}>
+                {editingId === command.id ? (
+                  renderCommandForm(true, command.id)
+                ) : (
+                  <div className="flex items-start justify-between">
+                    <SpaceBetween size="xs">
+                      <Box variant="h3">/{command.name}</Box>
+                      <Box variant="p" color="text-body-secondary">{command.description}</Box>
+                      <Box fontSize="body-s" color="text-status-inactive">
+                        応答: {responseTypeOptions.find(o => o.value === command.responseType)?.label}
+                      </Box>
+                      {command.responseType === ResponseType.API_CALL && command.apiProfileId && (
+                        <Box fontSize="body-s" color="text-status-info">
+                          API: {apiProfiles.find(p => p.id === command.apiProfileId)?.name}
+                        </Box>
+                      )}
+                    </SpaceBetween>
+                    <SpaceBetween direction="horizontal" size="xs">
+                      <Button
+                        variant="icon"
+                        iconName="edit"
+                        onClick={() => startEdit(command)}
+                      />
+                      <Button
+                        variant="icon"
+                        iconName="remove"
+                        onClick={() => handleDelete(command.id)}
+                      />
+                    </SpaceBetween>
+                  </div>
+                )}
+              </Container>
+            ))}
+
+            {/* 新規追加フォーム */}
+            {isAdding && (
+              <Container>
+                <SpaceBetween size="m">
+                  <Header variant="h3">新しいコマンド</Header>
+                  {renderCommandForm(false)}
+                </SpaceBetween>
+              </Container>
+            )}
+
+            {/* 追加ボタン */}
+            {!isAdding && !editingId && (
+              <Button
+                variant="normal"
+                iconName="add-plus"
+                onClick={() => setIsAdding(true)}
+                fullWidth
+              >
+                コマンドを追加
+              </Button>
+            )}
+
+            {commands.length === 0 && !isAdding && (
+              <Alert type="info">
+                まだコマンドが追加されていません。上のボタンから追加してください。
+              </Alert>
+            )}
+          </SpaceBetween>
+        </Container>
+      </SpaceBetween>
+    </Form>
   );
 }
