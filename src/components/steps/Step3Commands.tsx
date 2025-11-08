@@ -40,6 +40,22 @@ export function Step3Commands({
     apiProfileId: '',
     apiEndpoint: '',
     codeSnippet: '',
+    options: [],
+  });
+
+  // コマンドオプション編集用の状態
+  const [isAddingOption, setIsAddingOption] = useState(false);
+  const [editingOptionIndex, setEditingOptionIndex] = useState<number | null>(null);
+  const [optionFormData, setOptionFormData] = useState<{
+    name: string;
+    description: string;
+    type: 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role';
+    required: boolean;
+  }>({
+    name: '',
+    description: '',
+    type: 'string',
+    required: false,
   });
 
   const handleAdd = () => {
@@ -52,6 +68,7 @@ export function Step3Commands({
       apiProfileId: formData.apiProfileId,
       apiEndpoint: formData.apiEndpoint,
       codeSnippet: formData.codeSnippet,
+      options: formData.options || [],
     };
 
     onChange([...commands, newCommand]);
@@ -93,6 +110,62 @@ export function Step3Commands({
       apiProfileId: '',
       apiEndpoint: '',
       codeSnippet: '',
+      options: [],
+    });
+  };
+
+  // コマンドオプション関連の関数
+  const handleAddOption = () => {
+    const currentOptions = formData.options || [];
+    setFormData({
+      ...formData,
+      options: [...currentOptions, optionFormData],
+    });
+    setIsAddingOption(false);
+    resetOptionForm();
+  };
+
+  const handleUpdateOption = (index: number) => {
+    const currentOptions = formData.options || [];
+    const updatedOptions = currentOptions.map((opt, i) =>
+      i === index ? optionFormData : opt
+    );
+    setFormData({
+      ...formData,
+      options: updatedOptions,
+    });
+    setEditingOptionIndex(null);
+    resetOptionForm();
+  };
+
+  const handleDeleteOption = (index: number) => {
+    const currentOptions = formData.options || [];
+    setFormData({
+      ...formData,
+      options: currentOptions.filter((_, i) => i !== index),
+    });
+  };
+
+  const startEditOption = (index: number) => {
+    const option = formData.options?.[index];
+    if (option) {
+      setEditingOptionIndex(index);
+      setOptionFormData(option);
+    }
+  };
+
+  const cancelEditOption = () => {
+    setEditingOptionIndex(null);
+    setIsAddingOption(false);
+    resetOptionForm();
+  };
+
+  const resetOptionForm = () => {
+    setOptionFormData({
+      name: '',
+      description: '',
+      type: 'string',
+      required: false,
     });
   };
 
@@ -100,6 +173,73 @@ export function Step3Commands({
     { value: ResponseType.STATIC_TEXT, label: '静的テキスト' },
     { value: ResponseType.API_CALL, label: 'API利用' },
   ];
+
+  const optionTypeOptions = [
+    { value: 'string' as const, label: '文字列' },
+    { value: 'integer' as const, label: '整数' },
+    { value: 'boolean' as const, label: '真偽値' },
+    { value: 'user' as const, label: 'ユーザー' },
+    { value: 'channel' as const, label: 'チャンネル' },
+    { value: 'role' as const, label: 'ロール' },
+  ];
+
+  const renderOptionForm = (isEdit: boolean, optionIndex?: number) => (
+    <SpaceBetween size="m">
+      <FormField
+        label="オプション名"
+        description="小文字、数字、ハイフン、アンダースコアのみ"
+      >
+        <Input
+          value={optionFormData.name || ''}
+          onChange={({ detail }) => setOptionFormData({ ...optionFormData, name: detail.value })}
+          placeholder="zipcode"
+        />
+      </FormField>
+
+      <FormField label="説明">
+        <Input
+          value={optionFormData.description || ''}
+          onChange={({ detail }) => setOptionFormData({ ...optionFormData, description: detail.value })}
+          placeholder="郵便番号を入力してください"
+        />
+      </FormField>
+
+      <FormField label="型">
+        <Select
+          selectedOption={optionTypeOptions.find(o => o.value === optionFormData.type) || optionTypeOptions[0]}
+          onChange={({ detail }) => setOptionFormData({ ...optionFormData, type: detail.selectedOption.value as 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role' })}
+          options={optionTypeOptions}
+        />
+      </FormField>
+
+      <FormField label="必須">
+        <Select
+          selectedOption={
+            optionFormData.required
+              ? { value: 'true', label: '必須' }
+              : { value: 'false', label: '任意' }
+          }
+          onChange={({ detail }) => setOptionFormData({ ...optionFormData, required: detail.selectedOption.value === 'true' })}
+          options={[
+            { value: 'true', label: '必須' },
+            { value: 'false', label: '任意' },
+          ]}
+        />
+      </FormField>
+
+      <SpaceBetween direction="horizontal" size="xs">
+        <Button
+          onClick={() => (isEdit && optionIndex !== undefined ? handleUpdateOption(optionIndex) : handleAddOption())}
+          disabled={!optionFormData.name || !optionFormData.description}
+        >
+          {isEdit ? '保存' : '追加'}
+        </Button>
+        <Button variant="link" onClick={cancelEditOption}>
+          キャンセル
+        </Button>
+      </SpaceBetween>
+    </SpaceBetween>
+  );
 
   const renderCommandForm = (isEdit: boolean, commandId?: string) => (
     <SpaceBetween size="m">
@@ -120,6 +260,70 @@ export function Step3Commands({
           onChange={({ detail }) => setFormData({ ...formData, description: detail.value })}
           placeholder="天気情報を取得します"
         />
+      </FormField>
+
+      {/* コマンドオプション一覧 */}
+      <FormField
+        label="コマンドオプション（引数）"
+        description="スラッシュコマンドに渡すパラメータを定義します。例: /weather zipcode:1000001"
+      >
+        <SpaceBetween size="s">
+          {/* 既存のオプション一覧 */}
+          {formData.options && formData.options.length > 0 && (
+            <SpaceBetween size="xs">
+              {formData.options.map((option, index) => (
+                <Container key={index}>
+                  {editingOptionIndex === index ? (
+                    renderOptionForm(true, index)
+                  ) : (
+                    <div className="flex items-start justify-between">
+                      <SpaceBetween size="xs">
+                        <Box variant="h4">{option.name}</Box>
+                        <Box variant="p" color="text-body-secondary">{option.description}</Box>
+                        <Box fontSize="body-s" color="text-status-inactive">
+                          型: {optionTypeOptions.find(o => o.value === option.type)?.label} | {option.required ? '必須' : '任意'}
+                        </Box>
+                      </SpaceBetween>
+                      <SpaceBetween direction="horizontal" size="xs">
+                        <Button
+                          variant="icon"
+                          iconName="edit"
+                          onClick={() => startEditOption(index)}
+                        />
+                        <Button
+                          variant="icon"
+                          iconName="remove"
+                          onClick={() => handleDeleteOption(index)}
+                        />
+                      </SpaceBetween>
+                    </div>
+                  )}
+                </Container>
+              ))}
+            </SpaceBetween>
+          )}
+
+          {/* オプション新規追加フォーム */}
+          {isAddingOption && (
+            <Container>
+              <SpaceBetween size="m">
+                <Header variant="h3">新しいオプション</Header>
+                {renderOptionForm(false)}
+              </SpaceBetween>
+            </Container>
+          )}
+
+          {/* オプション追加ボタン */}
+          {!isAddingOption && editingOptionIndex === null && (
+            <Button
+              variant="normal"
+              iconName="add-plus"
+              onClick={() => setIsAddingOption(true)}
+            >
+              オプションを追加
+            </Button>
+          )}
+        </SpaceBetween>
       </FormField>
 
       <FormField label="応答タイプ">
@@ -160,28 +364,29 @@ export function Step3Commands({
 
           <FormField
             label="APIエンドポイント"
-            description="ベースURLからの相対パス。変数は{変数名}で指定"
+            description="ベースURLからの相対パス。変数は{変数名}で指定。例: weather?zip={zipcode}"
           >
             <Input
               value={formData.apiEndpoint || ''}
               onChange={({ detail }) => setFormData({ ...formData, apiEndpoint: detail.value })}
-              placeholder="weather?q={city}"
+              placeholder="weather?zip={zipcode}"
             />
           </FormField>
 
           <FormField
             label="カスタムロジック（オプション）"
-            description="JavaScriptコード。apiResponseオブジェクトが利用可能"
+            description="JavaScriptコード。apiResponseオブジェクトとinteraction.options（コマンドオプションの値）が利用可能"
           >
             <Textarea
               value={formData.codeSnippet || ''}
               onChange={({ detail }) => setFormData({ ...formData, codeSnippet: detail.value })}
               placeholder={`// API応答を処理してDiscord応答を返す
+// コマンドオプションの値: interaction.options.getString('zipcode')
 const data = await apiResponse.json();
 return {
   content: \`現在の気温: \${data.main.temp}°C\`
 };`}
-              rows={6}
+              rows={8}
             />
           </FormField>
         </>
@@ -236,6 +441,11 @@ return {
                     <SpaceBetween size="xs">
                       <Box variant="h3">/{command.name}</Box>
                       <Box variant="p" color="text-body-secondary">{command.description}</Box>
+                      {command.options && command.options.length > 0 && (
+                        <Box fontSize="body-s" color="text-status-info">
+                          オプション: {command.options.map(o => `${o.name} (${o.type})`).join(', ')}
+                        </Box>
+                      )}
                       <Box fontSize="body-s" color="text-status-inactive">
                         応答: {responseTypeOptions.find(o => o.value === command.responseType)?.label}
                       </Box>

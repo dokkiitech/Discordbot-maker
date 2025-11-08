@@ -235,12 +235,20 @@ function generateIndexTs(
 
   // コマンド登録用の配列を生成
   const commandDefinitions = commands
-    .map(
-      (cmd) => `  {
+    .map((cmd) => {
+      const optionsArray = cmd.options && cmd.options.length > 0
+        ? `,\n    options: ${JSON.stringify(cmd.options.map(opt => ({
+            name: opt.name,
+            description: opt.description,
+            type: getDiscordOptionType(opt.type),
+            required: opt.required,
+          })), null, 6).replace(/\n/g, '\n    ')}`
+        : '';
+      return `  {
     name: '${cmd.name}',
-    description: '${cmd.description}',
-  }`
-    )
+    description: '${cmd.description}'${optionsArray}
+  }`;
+    })
     .join(',\n');
 
   return `import { verifyKey } from 'discord-interactions';
@@ -405,10 +413,26 @@ function generateCommandHandler(
       content: JSON.stringify(data, null, 2),
     };`;
 
+  // エンドポイント内の変数を置換するロジックを生成（Cloudflare Workers版）
+  const endpointVariableReplacementCF = command.options && command.options.length > 0
+    ? command.options.map(opt => {
+        const getterMethod = opt.type === 'integer' ? 'getInteger' :
+                           opt.type === 'boolean' ? 'getBoolean' :
+                           opt.type === 'user' ? 'getUser' :
+                           opt.type === 'channel' ? 'getChannel' :
+                           opt.type === 'role' ? 'getRole' : 'getString';
+        return `endpoint = endpoint.replace('{${opt.name}}', String(interaction.data.options?.find((o: any) => o.name === '${opt.name}')?.value || ''));`;
+      }).join('\n    ')
+    : '';
+
   return `async function ${functionName}(interaction: any, env: Env): Promise<Response> {
   try {
     const baseUrl = env.${profile.envVarUrl};
-    const endpoint = '${command.apiEndpoint || ''}';
+    let endpoint = '${command.apiEndpoint || ''}';
+
+    // コマンドオプションから値を取得してエンドポイントの変数を置換
+    ${endpointVariableReplacementCF}
+
     const url = new URL(endpoint, baseUrl);
 
     ${urlParams}
@@ -651,6 +675,21 @@ function capitalize(str: string): string {
 }
 
 /**
+ * コマンドオプションの型をDiscord APIの型番号に変換
+ */
+function getDiscordOptionType(type: string): number {
+  const typeMap: Record<string, number> = {
+    'string': 3,
+    'integer': 4,
+    'boolean': 5,
+    'user': 6,
+    'channel': 7,
+    'role': 8,
+  };
+  return typeMap[type] || 3; // デフォルトは文字列
+}
+
+/**
  * Gateway Bot用のindex.ts を生成 (discord.js)
  */
 function generateGatewayIndexTs(
@@ -663,12 +702,20 @@ function generateGatewayIndexTs(
     .join('\n\n');
 
   const commandDefinitions = commands
-    .map(
-      (cmd) => `  {
+    .map((cmd) => {
+      const optionsArray = cmd.options && cmd.options.length > 0
+        ? `,\n    options: ${JSON.stringify(cmd.options.map(opt => ({
+            name: opt.name,
+            description: opt.description,
+            type: getDiscordOptionType(opt.type),
+            required: opt.required,
+          })), null, 6).replace(/\n/g, '\n    ')}`
+        : '';
+      return `  {
     name: '${cmd.name}',
-    description: '${cmd.description}',
-  }`
-    )
+    description: '${cmd.description}'${optionsArray}
+  }`;
+    })
     .join(',\n');
 
   return `import { Client, GatewayIntentBits, REST, Routes, ChatInputCommandInteraction } from 'discord.js';
@@ -773,12 +820,28 @@ function generateGatewayCommandHandler(
     const data = await apiResponse.json();
     return JSON.stringify(data, null, 2);`;
 
+  // エンドポイント内の変数を置換するロジックを生成
+  const endpointVariableReplacement = command.options && command.options.length > 0
+    ? command.options.map(opt => {
+        const getterMethod = opt.type === 'integer' ? 'getInteger' :
+                           opt.type === 'boolean' ? 'getBoolean' :
+                           opt.type === 'user' ? 'getUser' :
+                           opt.type === 'channel' ? 'getChannel' :
+                           opt.type === 'role' ? 'getRole' : 'getString';
+        return `endpoint = endpoint.replace('{${opt.name}}', String(interaction.options.${getterMethod}('${opt.name}') || ''));`;
+      }).join('\n    ')
+    : '';
+
   return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
   try {
     await interaction.deferReply();
 
     const baseUrl = process.env.${profile.envVarUrl}!;
-    const endpoint = '${command.apiEndpoint || ''}';
+    let endpoint = '${command.apiEndpoint || ''}';
+
+    // コマンドオプションから値を取得してエンドポイントの変数を置換
+    ${endpointVariableReplacement}
+
     const url = new URL(endpoint, baseUrl);
 
     ${urlParams}
