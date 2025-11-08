@@ -39,8 +39,9 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>([]);
 
   // プロップから来た commands を追跡して、props更新と user操作を区別
-  const prevCommandsRef = useRef(commands);
+  const prevCommandsRef = useRef<SlashCommand[]>(commands);
   const isPropsUpdateRef = useRef(false);
+  const isInitializedRef = useRef(false);
 
   // 初回に commands からノード・エッジを生成
   // commands が変更されたときもリセット
@@ -49,11 +50,17 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
     const hasCommandsChanged =
       JSON.stringify(prevCommandsRef.current) !== JSON.stringify(commands);
 
-    if (hasCommandsChanged) {
+    if (hasCommandsChanged || !isInitializedRef.current) {
       // props が変更されたことをマーク
       isPropsUpdateRef.current = true;
+      isInitializedRef.current = true;
 
       const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
+      console.log('🔄 Commands changed, generating nodes:', {
+        commandsCount: commands.length,
+        nodesCount: newNodes.length,
+        commands: commands,
+      });
       setNodes(newNodes);
       setEdges(newEdges);
       prevCommandsRef.current = commands;
