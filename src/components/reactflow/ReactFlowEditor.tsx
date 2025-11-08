@@ -191,6 +191,7 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
 
       {/* ReactFlow キャンバス */}
       <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
+        <style>{`.react-flow__attribution { display: none; }`}</style>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -203,6 +204,7 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
           className="bg-gray-50"
           minZoom={0.1}
           maxZoom={3}
+          attributionPosition="bottom-left"
         >
           <Background color="#cbd5e1" gap={16} />
           <Controls />
