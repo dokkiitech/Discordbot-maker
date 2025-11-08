@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Bot, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StepIndicator } from '@/components/steps/StepIndicator';
+import { Step0TemplateSelection } from '@/components/steps/Step0TemplateSelection';
 import { Step1Repository } from '@/components/steps/Step1Repository';
 import { Step2ApiProfiles } from '@/components/steps/Step2ApiProfiles';
 import { Step3Commands } from '@/components/steps/Step3Commands';
@@ -18,11 +19,12 @@ import type {
   SlashCommand,
 } from '@/lib/types';
 import { BotDeploymentType } from '@/lib/types';
+import { BotTemplate, createProjectConfigFromTemplate } from '@/lib/templates';
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // 0: テンプレート選択, 1-4: 既存のステップ
 
   // フォームデータ
   const [repositoryConfig, setRepositoryConfig] = useState<RepositoryConfig>({
@@ -70,7 +72,35 @@ export default function DashboardPage() {
   };
 
   const handlePrev = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  // テンプレート選択時の処理
+  const handleTemplateSelect = (template: BotTemplate) => {
+    if (!user) return;
+
+    // テンプレートから設定を生成（リポジトリ名とボット名はユーザーが後で入力）
+    const config = createProjectConfigFromTemplate(template, {
+      repositoryName: '',
+      botName: template.name,
+      userId: user.id.toString(),
+      repositoryDescription: template.description,
+      isPrivate: true,
+    });
+
+    // 設定を適用
+    setRepositoryConfig(config.repository);
+    setBotConfig(config.botConfig as BotConfig);
+    setApiProfiles(config.apiProfiles);
+    setCommands(config.commands as SlashCommand[]);
+
+    // Step1に進む
+    setCurrentStep(1);
+  };
+
+  // テンプレート選択をスキップ（空のプロジェクト）
+  const handleSkipTemplate = () => {
+    setCurrentStep(1);
   };
 
   const handleSubmit = async () => {
@@ -127,11 +157,19 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Step Indicator */}
-          <StepIndicator currentStep={currentStep} />
+          {/* Step Indicator - テンプレート選択画面では非表示 */}
+          {currentStep > 0 && <StepIndicator currentStep={currentStep} />}
 
           {/* Step Content */}
           <div className="mt-8">
+            {/* Step 0: テンプレート選択 */}
+            {currentStep === 0 && (
+              <Step0TemplateSelection
+                onTemplateSelect={handleTemplateSelect}
+                onSkip={handleSkipTemplate}
+              />
+            )}
+
             {currentStep === 1 && (
               <Step1Repository
                 repositoryConfig={repositoryConfig}
