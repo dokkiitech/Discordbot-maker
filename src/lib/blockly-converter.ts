@@ -6,18 +6,23 @@ import { ResponseType } from './types';
  * Blocklyワークスペースから SlashCommand[] に変換
  */
 export function blocksToCommands(workspace: Blockly.Workspace): SlashCommand[] {
+  console.log('[Converter Debug] blocksToCommands called');
   const commands: SlashCommand[] = [];
   const topBlocks = workspace.getTopBlocks(false);
+  console.log('[Converter Debug] Top blocks count:', topBlocks.length);
 
-  topBlocks.forEach((block) => {
+  topBlocks.forEach((block, index) => {
+    console.log(`[Converter Debug] Block ${index}:`, block.type);
     if (block.type === 'discord_command') {
       const command = blockToCommand(block);
+      console.log(`[Converter Debug] Converted command ${index}:`, command);
       if (command) {
         commands.push(command);
       }
     }
   });
 
+  console.log('[Converter Debug] Final commands:', commands);
   return commands;
 }
 
@@ -103,11 +108,13 @@ function blockToOption(block: Blockly.Block): CommandOption | null {
  * SlashCommand[] を Blocklyワークスペースに変換
  */
 export function commandsToBlocks(commands: SlashCommand[], workspace: Blockly.Workspace): void {
+  console.log('[Converter Debug] commandsToBlocks called with', commands.length, 'commands');
   workspace.clear();
 
   let yOffset = 20;
 
-  commands.forEach((command) => {
+  commands.forEach((command, index) => {
+    console.log(`[Converter Debug] Creating block for command ${index}:`, command.name);
     const commandBlock = workspace.newBlock('discord_command') as Blockly.Block;
     commandBlock.setFieldValue(command.name, 'NAME');
     commandBlock.setFieldValue(command.description, 'DESCRIPTION');

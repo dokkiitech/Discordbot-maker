@@ -1,14 +1,14 @@
 import * as Blockly from 'blockly';
-import { commandBlocks } from './commandBlocks';
-import { optionBlocks } from './optionBlocks';
-import { responseBlocks } from './responseBlocks';
+// ブロック定義をインポート（副作用としてBlockly.Blocksに登録される）
+import './commandBlocks';
+import './optionBlocks';
+import './responseBlocks';
 
 /**
  * すべてのカスタムブロックを登録
  */
 export function registerAllBlocks() {
-  // ブロック定義は既に各ファイルで登録済み
-  // この関数は互換性のために残す
+  // ブロック定義は各ファイルのインポート時に自動的に登録される
 }
 
 /**

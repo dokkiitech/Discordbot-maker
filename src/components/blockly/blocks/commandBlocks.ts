@@ -3,38 +3,27 @@ import * as Blockly from 'blockly';
 /**
  * コマンドブロックの定義
  */
-export const commandBlocks = Blockly.common.createBlockDefinitionsFromJsonArray([
-  {
-    type: 'discord_command',
-    message0: 'コマンド /%1 説明 %2',
-    args0: [
-      {
-        type: 'field_input',
-        name: 'NAME',
-        text: 'mycommand',
-      },
-      {
-        type: 'field_input',
-        name: 'DESCRIPTION',
-        text: 'コマンドの説明',
-      },
-    ],
-    message1: 'オプション %1',
-    args1: [
-      {
-        type: 'input_statement',
-        name: 'OPTIONS',
-      },
-    ],
-    message2: '応答 %1',
-    args2: [
-      {
-        type: 'input_statement',
-        name: 'RESPONSE',
-      },
-    ],
-    colour: 230,
-    tooltip: 'Discordスラッシュコマンドを定義します',
-    helpUrl: '',
-  },
-]);
+Blockly.Blocks['discord_command'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('コマンド /')
+        .appendField(new Blockly.FieldTextInput('mycommand'), 'NAME')
+        .appendField('説明')
+        .appendField(new Blockly.FieldTextInput('コマンドの説明'), 'DESCRIPTION');
+    this.appendStatementInput('OPTIONS')
+        .setCheck('Option')
+        .appendField('オプション');
+    this.appendStatementInput('RESPONSE')
+        .setCheck('Response')
+        .appendField('応答');
+    this.setColour(230);
+    this.setTooltip('Discordスラッシュコマンドを定義します');
+    this.setHelpUrl('');
+    this.setMovable(true);
+    this.setDeletable(true);
+    this.setEditable(true);
+    // 接続を無効化（コマンドブロックは独立）
+    this.setPreviousStatement(false);
+    this.setNextStatement(false);
+  }
+};
