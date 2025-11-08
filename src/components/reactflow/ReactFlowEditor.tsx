@@ -5,7 +5,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -200,15 +199,6 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
         >
           <Background color="#cbd5e1" gap={16} />
           <Controls />
-          <MiniMap
-            nodeColor={(node) => {
-              if (node.type === 'command') return '#3b82f6';
-              if (node.type === 'option') return '#10b981';
-              if (node.type === 'response') return '#a855f7';
-              return '#gray';
-            }}
-            maskColor="rgb(240, 240, 240, 0.6)"
-          />
         </ReactFlow>
       </div>
     </div>

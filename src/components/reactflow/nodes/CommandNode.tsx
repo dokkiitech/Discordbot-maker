@@ -62,8 +62,8 @@ const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
   }, [id, description, setNodes]);
 
   return (
-    <div className="px-4 py-3 shadow-lg rounded-lg bg-blue-50 border-2 border-blue-500 min-w-[280px]">
-      <div className="font-bold text-blue-700 mb-3 text-sm">Discord Command</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg bg-blue-50 border-2 border-blue-500 min-w-[200px]">
+      <div className="font-bold text-blue-700 mb-2 text-xs">Discord Command</div>
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">

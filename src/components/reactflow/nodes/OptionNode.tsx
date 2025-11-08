@@ -102,8 +102,8 @@ const OptionNodeComponent = ({ data, id }: NodeProps<OptionNodeData>) => {
   }, [id, setNodes]);
 
   return (
-    <div className="px-4 py-3 shadow-lg rounded-lg bg-green-50 border-2 border-green-500 min-w-[250px]">
-      <div className="font-bold text-green-700 mb-3 text-sm">Option</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg bg-green-50 border-2 border-green-500 min-w-[180px]">
+      <div className="font-bold text-green-700 mb-2 text-xs">Option</div>
 
       <Handle
         type="target"

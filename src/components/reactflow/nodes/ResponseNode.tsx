@@ -129,8 +129,8 @@ const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
   }, [id, codeSnippet, setNodes]);
 
   return (
-    <div className="px-4 py-3 shadow-lg rounded-lg bg-purple-50 border-2 border-purple-500 min-w-[280px]">
-      <div className="font-bold text-purple-700 mb-3 text-sm">Response</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg bg-purple-50 border-2 border-purple-500 min-w-[200px]">
+      <div className="font-bold text-purple-700 mb-2 text-xs">Response</div>
 
       <Handle
         type="target"
