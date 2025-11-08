@@ -1,17 +1,32 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { OptionNodeData } from '@/lib/reactflow-types';
 
-export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
+const OptionNodeComponent = ({ data, id }: NodeProps<OptionNodeData>) => {
   const { setNodes } = useReactFlow();
+  const [name, setName] = useState(data.name);
+  const [description, setDescription] = useState(data.description);
+  const [type, setType] = useState(data.type);
+  const [required, setRequired] = useState(data.required);
+
+  useEffect(() => {
+    setName(data.name);
+    setDescription(data.description);
+    setType(data.type);
+    setRequired(data.required);
+  }, [data.name, data.description, data.type, data.required]);
 
   const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLSelectElement>) => {
     evt.stopPropagation();
   }, []);
 
   const onNameChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setName(evt.target.value);
+  }, []);
+
+  const onNameBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -19,16 +34,20 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             ...node,
             data: {
               ...node.data,
-              name: evt.target.value,
+              name,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, name, setNodes]);
 
   const onDescriptionChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(evt.target.value);
+  }, []);
+
+  const onDescriptionBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -36,16 +55,18 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             ...node,
             data: {
               ...node.data,
-              description: evt.target.value,
+              description,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, description, setNodes]);
 
   const onTypeChange = useCallback((evt: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = evt.target.value as OptionNodeData['type'];
+    setType(newType);
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -53,7 +74,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
             ...node,
             data: {
               ...node.data,
-              type: evt.target.value as OptionNodeData['type'],
+              type: newType,
             },
           };
         }
@@ -63,6 +84,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
   }, [id, setNodes]);
 
   const onRequiredChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setRequired(evt.target.checked);
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -95,8 +117,9 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
           <label className="block font-medium text-gray-700 mb-1">名前:</label>
           <input
             type="text"
-            value={data.name}
+            value={name}
             onChange={onNameChange}
+            onBlur={onNameBlur}
             onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="option_name"
@@ -107,8 +130,9 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
           <label className="block font-medium text-gray-700 mb-1">説明:</label>
           <input
             type="text"
-            value={data.description}
+            value={description}
             onChange={onDescriptionChange}
+            onBlur={onDescriptionBlur}
             onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="オプションの説明"
@@ -118,7 +142,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
         <div>
           <label className="block font-medium text-gray-700 mb-1">型:</label>
           <select
-            value={data.type}
+            value={type}
             onChange={onTypeChange}
             onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -136,7 +160,7 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
           <input
             id={`${id}-required`}
             type="checkbox"
-            checked={data.required}
+            checked={required}
             onChange={onRequiredChange}
             onMouseDown={handleInputMouseDown}
             className="nodrag w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
@@ -155,6 +179,8 @@ export const OptionNode = memo(({ data, id }: NodeProps<OptionNodeData>) => {
       />
     </div>
   );
-});
+};
+
+export const OptionNode = memo(OptionNodeComponent);
 
 OptionNode.displayName = 'OptionNode';

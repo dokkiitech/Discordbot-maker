@@ -1,18 +1,33 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { ResponseNodeData } from '@/lib/reactflow-types';
 import { ResponseType } from '@/lib/types';
 
-export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => {
+const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
   const { setNodes } = useReactFlow();
+  const [responseType, setResponseType] = useState(data.responseType);
+  const [staticText, setStaticText] = useState(data.staticText || '');
+  const [apiProfileId, setApiProfileId] = useState(data.apiProfileId || '');
+  const [apiEndpoint, setApiEndpoint] = useState(data.apiEndpoint || '');
+  const [codeSnippet, setCodeSnippet] = useState(data.codeSnippet || '');
+
+  useEffect(() => {
+    setResponseType(data.responseType);
+    setStaticText(data.staticText || '');
+    setApiProfileId(data.apiProfileId || '');
+    setApiEndpoint(data.apiEndpoint || '');
+    setCodeSnippet(data.codeSnippet || '');
+  }, [data.responseType, data.staticText, data.apiProfileId, data.apiEndpoint, data.codeSnippet]);
 
   const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     evt.stopPropagation();
   }, []);
 
   const onResponseTypeChange = useCallback((evt: React.ChangeEvent<HTMLSelectElement>) => {
+    const newResponseType = evt.target.value as ResponseType;
+    setResponseType(newResponseType);
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -20,7 +35,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             ...node,
             data: {
               ...node.data,
-              responseType: evt.target.value as ResponseType,
+              responseType: newResponseType,
             },
           };
         }
@@ -30,6 +45,10 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
   }, [id, setNodes]);
 
   const onStaticTextChange = useCallback((evt: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setStaticText(evt.target.value);
+  }, []);
+
+  const onStaticTextBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -37,16 +56,20 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             ...node,
             data: {
               ...node.data,
-              staticText: evt.target.value,
+              staticText,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, staticText, setNodes]);
 
   const onApiProfileIdChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setApiProfileId(evt.target.value);
+  }, []);
+
+  const onApiProfileIdBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -54,16 +77,20 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             ...node,
             data: {
               ...node.data,
-              apiProfileId: evt.target.value,
+              apiProfileId,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, apiProfileId, setNodes]);
 
   const onApiEndpointChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setApiEndpoint(evt.target.value);
+  }, []);
+
+  const onApiEndpointBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -71,16 +98,20 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             ...node,
             data: {
               ...node.data,
-              apiEndpoint: evt.target.value,
+              apiEndpoint,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, apiEndpoint, setNodes]);
 
   const onCodeSnippetChange = useCallback((evt: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCodeSnippet(evt.target.value);
+  }, []);
+
+  const onCodeSnippetBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -88,14 +119,14 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             ...node,
             data: {
               ...node.data,
-              codeSnippet: evt.target.value,
+              codeSnippet,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, codeSnippet, setNodes]);
 
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-purple-50 border-2 border-purple-500 min-w-[280px]">
@@ -112,7 +143,7 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
         <div>
           <label className="block font-medium text-gray-700 mb-1">応答タイプ:</label>
           <select
-            value={data.responseType}
+            value={responseType}
             onChange={onResponseTypeChange}
             onMouseDown={handleInputMouseDown}
             className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -122,12 +153,13 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
           </select>
         </div>
 
-        {data.responseType === ResponseType.STATIC_TEXT ? (
+        {responseType === ResponseType.STATIC_TEXT ? (
           <div>
             <label className="block font-medium text-gray-700 mb-1">テキスト:</label>
             <textarea
-              value={data.staticText || ''}
+              value={staticText}
               onChange={onStaticTextChange}
+              onBlur={onStaticTextBlur}
               onMouseDown={handleInputMouseDown}
               className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               rows={3}
@@ -140,8 +172,9 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
               <label className="block font-medium text-gray-700 mb-1">API Profile ID:</label>
               <input
                 type="text"
-                value={data.apiProfileId || ''}
+                value={apiProfileId}
                 onChange={onApiProfileIdChange}
+                onBlur={onApiProfileIdBlur}
                 onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="api_profile_id"
@@ -151,8 +184,9 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
               <label className="block font-medium text-gray-700 mb-1">Endpoint:</label>
               <input
                 type="text"
-                value={data.apiEndpoint || ''}
+                value={apiEndpoint}
                 onChange={onApiEndpointChange}
+                onBlur={onApiEndpointBlur}
                 onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="/api/endpoint"
@@ -161,8 +195,9 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
             <div>
               <label className="block font-medium text-gray-700 mb-1">カスタムロジック:</label>
               <textarea
-                value={data.codeSnippet || ''}
+                value={codeSnippet}
                 onChange={onCodeSnippetChange}
+                onBlur={onCodeSnippetBlur}
                 onMouseDown={handleInputMouseDown}
                 className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none font-mono"
                 rows={3}
@@ -174,6 +209,8 @@ export const ResponseNode = memo(({ data, id }: NodeProps<ResponseNodeData>) => 
       </div>
     </div>
   );
-});
+};
+
+export const ResponseNode = memo(ResponseNodeComponent);
 
 ResponseNode.displayName = 'ResponseNode';

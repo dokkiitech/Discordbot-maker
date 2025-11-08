@@ -1,43 +1,29 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { CommandNodeData } from '@/lib/reactflow-types';
 
-export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
+const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
   const { setNodes } = useReactFlow();
+  const [name, setName] = useState(data.name);
+  const [description, setDescription] = useState(data.description);
+
+  // プロップが外部から変更されたときのみ同期（例：他のノードから影響を受けた場合）
+  useEffect(() => {
+    setName(data.name);
+    setDescription(data.description);
+  }, [data.name, data.description]);
 
   const handleInputMouseDown = useCallback((evt: React.MouseEvent<HTMLInputElement>) => {
     evt.stopPropagation();
   }, []);
 
   const onNameChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[CommandNode] onNameChange called:', {
-      nodeId: id,
-      newValue: evt.target.value,
-      currentDataName: data.name,
-    });
+    setName(evt.target.value);
+  }, []);
 
-    setNodes((nds) => {
-      const updated = nds.map((node) => {
-        if (node.id === id) {
-          console.log('[CommandNode] Updating node:', id, 'to:', evt.target.value);
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              name: evt.target.value,
-            },
-          };
-        }
-        return node;
-      });
-      console.log('[CommandNode] Updated nodes count:', updated.length);
-      return updated;
-    });
-  }, [id, setNodes]);
-
-  const onDescriptionChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+  const onNameBlur = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
@@ -45,14 +31,35 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
             ...node,
             data: {
               ...node.data,
-              description: evt.target.value,
+              name,
             },
           };
         }
         return node;
       })
     );
-  }, [id, setNodes]);
+  }, [id, name, setNodes]);
+
+  const onDescriptionChange = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(evt.target.value);
+  }, []);
+
+  const onDescriptionBlur = useCallback(() => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              description,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [id, description, setNodes]);
 
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-blue-50 border-2 border-blue-500 min-w-[280px]">
@@ -64,8 +71,9 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
         </label>
         <input
           type="text"
-          value={data.name}
+          value={name}
           onChange={onNameChange}
+          onBlur={onNameBlur}
           onMouseDown={handleInputMouseDown}
           className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="/mycommand"
@@ -78,8 +86,9 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
         </label>
         <input
           type="text"
-          value={data.description}
+          value={description}
           onChange={onDescriptionChange}
+          onBlur={onDescriptionBlur}
           onMouseDown={handleInputMouseDown}
           className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="コマンドの説明"
@@ -105,6 +114,8 @@ export const CommandNode = memo(({ data, id }: NodeProps<CommandNodeData>) => {
       />
     </div>
   );
-});
+};
+
+export const CommandNode = memo(CommandNodeComponent);
 
 CommandNode.displayName = 'CommandNode';
