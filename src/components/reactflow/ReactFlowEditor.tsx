@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -38,27 +38,16 @@ interface ReactFlowEditorInnerProps {
 function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>([]);
+  const isInitializedRef = useRef(false);
 
-  // プロップから来た変更を追跡するRef
-  const isUpdatingFromPropsRef = useRef(false);
-  const prevCommandsRef = useRef(commands);
-
-  // 初回および commands が変更されたときにノードとエッジを生成
-  // このエフェクトはプロップの変更にのみ反応
+  // 初回に commands からノード・エッジを生成
+  // commands が変更されたときもリセット
   useEffect(() => {
-    // プロップが実際に変更されているかをチェック
-    if (JSON.stringify(prevCommandsRef.current) !== JSON.stringify(commands)) {
-      isUpdatingFromPropsRef.current = true;
-      const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
-      setNodes(newNodes);
-      setEdges(newEdges);
-      prevCommandsRef.current = commands;
-      // 次のレンダリングで戻す
-      setTimeout(() => {
-        isUpdatingFromPropsRef.current = false;
-      }, 0);
-    }
-  }, [commands]);
+    const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
+    setNodes(newNodes);
+    setEdges(newEdges);
+    isInitializedRef.current = true;
+  }, [commands, setNodes, setEdges]);
 
   // 接続時の処理
   const onConnect: OnConnect = useCallback(
@@ -94,15 +83,23 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   );
 
   // ノードやエッジの変更をSlashCommandに変換
-  // ユーザー初期化の変更のみonChangeを呼び出す（プロップ更新からは呼ばない）
+  // ただし、props から来た初期化のときは parent に通知しない
   useEffect(() => {
-    // プロップ更新中は何もしない
-    if (isUpdatingFromPropsRef.current) {
+    // 初回実行時は、setNodes/setEdges の実行を待つ必要があるのでスキップ
+    if (!isInitializedRef.current) {
       return;
     }
+
+    // nodes が commandsToReactFlow の結果と同じ場合はスキップ
+    // （props が変更されてリセットされた直後）
+    const { nodes: expectedNodes } = commandsToReactFlow(commands);
+    if (JSON.stringify(nodes) === JSON.stringify(expectedNodes)) {
+      return;
+    }
+
     const updatedCommands = reactFlowToCommands(nodes, edges);
     onChange(updatedCommands);
-  }, [nodes, edges, onChange]);
+  }, [nodes, edges, onChange, commands]);
 
   return (
     <div style={{ width: '100%', height: '800px' }}>
