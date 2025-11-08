@@ -15,6 +15,7 @@ import { Download, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import type { RepositoryConfig, BotConfig, ApiProfile, SlashCommand } from '@/lib/types';
 import { BotDeploymentType } from '@/lib/types';
 import { downloadFile, generateEnvFile } from '@/lib/utils';
+import { downloadAsZip, type GeneratedFile } from '@/lib/zip-generator';
 
 interface Step4ReviewProps {
   repositoryConfig: RepositoryConfig;
@@ -37,6 +38,7 @@ export function Step4Review({
   const [generationComplete, setGenerationComplete] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
   const [copiedVar, setCopiedVar] = useState<string | null>(null);
+  const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
 
   const envVariables: Record<string, string> = {};
   if (botConfig.deploymentType === BotDeploymentType.INTERACTIONS_ENDPOINT) {
@@ -59,10 +61,24 @@ export function Step4Review({
       const result = await onSubmit();
       setGenerationComplete(true);
       setRepoUrl((result as any)?.repoUrl || '');
+      setGeneratedFiles((result as any)?.files || []);
     } catch (error) {
       console.error('Generation failed:', error);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleZipDownload = async () => {
+    if (generatedFiles.length === 0) {
+      console.error('No files to download');
+      return;
+    }
+
+    try {
+      await downloadAsZip(generatedFiles, botConfig.name);
+    } catch (error) {
+      console.error('Failed to download ZIP:', error);
     }
   };
 
@@ -273,6 +289,13 @@ pm2 restart ${botConfig.name.toLowerCase().replace(/\s+/g, '-')}  # 再起動`}
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="link" onClick={() => window.location.href = '/dashboard'}>
                 新しいBotを作成
+              </Button>
+              <Button
+                iconName="download"
+                onClick={handleZipDownload}
+                disabled={generatedFiles.length === 0}
+              >
+                ZIPでダウンロード
               </Button>
               {repoUrl && (
                 <Button
