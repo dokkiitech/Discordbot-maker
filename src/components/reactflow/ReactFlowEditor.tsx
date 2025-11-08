@@ -38,15 +38,26 @@ interface ReactFlowEditorInnerProps {
 function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>([]);
-  const isInitializedRef = useRef(false);
+
+  // プロップから来た commands を追跡して、props更新と user操作を区別
+  const prevCommandsRef = useRef(commands);
+  const isPropsUpdateRef = useRef(false);
 
   // 初回に commands からノード・エッジを生成
   // commands が変更されたときもリセット
   useEffect(() => {
+    // props が変更されたことをマーク
+    isPropsUpdateRef.current = true;
+
     const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
     setNodes(newNodes);
     setEdges(newEdges);
-    isInitializedRef.current = true;
+    prevCommandsRef.current = commands;
+
+    // 同期的にフラグを戻す（次のレンダリング前に）
+    Promise.resolve().then(() => {
+      isPropsUpdateRef.current = false;
+    });
   }, [commands, setNodes, setEdges]);
 
   // 接続時の処理
@@ -85,48 +96,114 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   // ノードやエッジの変更をSlashCommandに変換
   // ただし、props から来た初期化のときは parent に通知しない
   useEffect(() => {
-    // 初回実行時は、setNodes/setEdges の実行を待つ必要があるのでスキップ
-    if (!isInitializedRef.current) {
-      return;
-    }
-
-    // nodes が commandsToReactFlow の結果と同じ場合はスキップ
-    // （props が変更されてリセットされた直後）
-    const { nodes: expectedNodes } = commandsToReactFlow(commands);
-    if (JSON.stringify(nodes) === JSON.stringify(expectedNodes)) {
+    // props更新中は何もしない
+    if (isPropsUpdateRef.current) {
       return;
     }
 
     const updatedCommands = reactFlowToCommands(nodes, edges);
     onChange(updatedCommands);
-  }, [nodes, edges, onChange, commands]);
+  }, [nodes, edges, onChange]);
+
+  // ノード追加ハンドラー
+  const handleAddNode = useCallback(
+    (type: 'command' | 'option' | 'response') => {
+      const newNodeId = `${type}-${Date.now()}`;
+      const newNode: AppNode = {
+        id: newNodeId,
+        type,
+        position: { x: Math.random() * 300, y: Math.random() * 200 },
+        data:
+          type === 'command'
+            ? { name: 'New Command', description: '' }
+            : type === 'option'
+              ? { name: 'New Option' }
+              : { responseType: 'text', responseValue: '' },
+      } as AppNode;
+
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
 
   return (
-    <div style={{ width: '100%', height: '800px' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        className="bg-gray-50"
-        minZoom={0.2}
-        maxZoom={2}
-      >
-        <Background color="#cbd5e1" gap={16} />
-        <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            if (node.type === 'command') return '#3b82f6';
-            if (node.type === 'option') return '#10b981';
-            if (node.type === 'response') return '#a855f7';
-            return '#gray';
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '800px' }}>
+      {/* ノード追加ツールバー */}
+      <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderBottom: '1px solid #bfdbfe', display: 'flex', gap: '8px', flexShrink: 0 }}>
+        <button
+          onClick={() => handleAddNode('command')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
           }}
-          maskColor="rgb(240, 240, 240, 0.6)"
-        />
-      </ReactFlow>
+        >
+          + コマンド
+        </button>
+        <button
+          onClick={() => handleAddNode('option')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+        >
+          + オプション
+        </button>
+        <button
+          onClick={() => handleAddNode('response')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#a855f7',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+        >
+          + レスポンス
+        </button>
+      </div>
+
+      {/* ReactFlow キャンバス */}
+      <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+          className="bg-gray-50"
+          minZoom={0.2}
+          maxZoom={2}
+        >
+          <Background color="#cbd5e1" gap={16} />
+          <Controls />
+          <MiniMap
+            nodeColor={(node) => {
+              if (node.type === 'command') return '#3b82f6';
+              if (node.type === 'option') return '#10b981';
+              if (node.type === 'response') return '#a855f7';
+              return '#gray';
+            }}
+            maskColor="rgb(240, 240, 240, 0.6)"
+          />
+        </ReactFlow>
+      </div>
     </div>
   );
 }
