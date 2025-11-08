@@ -28,8 +28,8 @@ export default function Home() {
             <span className="text-blue-600">3ステップ</span>で作成
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            コーディング不要。Web UIから設定するだけで、<br />
-            Cloudflare Workers対応のDiscord Botが自動生成されます
+            ビジュアルコーディングで<br />
+            Discord Botが生成できます。
           </p>
           <Link
             href="/api/auth/github"
@@ -48,7 +48,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">簡単セットアップ</h3>
             <p className="text-gray-600">
-              Web UIで設定を入力するだけ。複雑なコーディングは不要です。
+              直感的なビジュアルコーディング。複雑なコーディングは不要です。
             </p>
           </div>
 
@@ -99,7 +99,7 @@ export default function Home() {
               </div>
               <div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2">
-                  APIプロファイルとコマンド定義
+                  APIプロファイル
                 </h4>
                 <p className="text-gray-600">
                   外部API連携とスラッシュコマンドを設定します。
@@ -113,10 +113,10 @@ export default function Home() {
               </div>
               <div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2">
-                  生成とデプロイ
+                  コマンド定義とコード生成
                 </h4>
                 <p className="text-gray-600">
-                  ボタンをクリックするだけで、コードが生成され、GitHubにコミットされます。
+                  コードが生成され、GitHubにコミットされます。
                 </p>
               </div>
             </div>
