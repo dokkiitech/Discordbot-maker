@@ -99,7 +99,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen text-foreground" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       {/* Header */}
-      <header className="border-b border-border" style={{ backgroundColor: 'var(--card-background)' }}>
+      <header className="border-b border-border liquid-blur-md header-depth-shadow" style={{ backgroundColor: 'var(--card-background)' }}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="w-8 h-8 text-primary" />

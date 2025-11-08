@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       {/* Header */}
-      <header className="border-b backdrop-blur-sm" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
+      <header className="border-b backdrop-blur-sm liquid-blur-md header-depth-shadow" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="w-8 h-8" style={{ color: 'var(--primary)' }} />
@@ -44,7 +44,7 @@ export default function Home() {
 
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <div className="p-8 rounded-xl shadow-md border" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
+          <div className="p-8 rounded-2xl shadow-lg border backdrop-blur-sm transition-all hover:shadow-xl hover:backdrop-blur" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)' }}>
               <Zap className="w-6 h-6" style={{ color: 'var(--primary)' }} />
             </div>
@@ -54,7 +54,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="p-8 rounded-xl shadow-md border" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
+          <div className="p-8 rounded-2xl shadow-lg border backdrop-blur-sm transition-all hover:shadow-xl hover:backdrop-blur" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: 'color-mix(in srgb, var(--info) 10%, transparent)' }}>
               <Code2 className="w-6 h-6" style={{ color: 'var(--info)' }} />
             </div>
@@ -64,7 +64,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="p-8 rounded-xl shadow-md border" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
+          <div className="p-8 rounded-2xl shadow-lg border backdrop-blur-sm transition-all hover:shadow-xl hover:backdrop-blur" style={{ backgroundColor: 'var(--card-background)', borderColor: 'var(--border)' }}>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
               <Github className="w-6 h-6" style={{ color: 'var(--success)' }} />
             </div>

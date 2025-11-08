@@ -10,7 +10,6 @@ import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Textarea from '@cloudscape-design/components/textarea';
 import Checkbox from '@cloudscape-design/components/checkbox';
-import RadioGroup from '@cloudscape-design/components/radio-group';
 import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
@@ -39,7 +38,6 @@ export function Step1Repository({
   onNext,
 }: Step1RepositoryProps) {
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors },

@@ -14,7 +14,7 @@ const steps = [
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
-    <div className="w-full">
+    <div className="w-full p-4 rounded-lg liquid-blur-md" style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.number} className="flex items-center flex-1">
