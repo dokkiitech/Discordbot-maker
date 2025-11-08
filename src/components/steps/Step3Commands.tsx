@@ -13,8 +13,11 @@ import Form from '@cloudscape-design/components/form';
 import Box from '@cloudscape-design/components/box';
 import Alert from '@cloudscape-design/components/alert';
 import SegmentedControl from '@cloudscape-design/components/segmented-control';
-import type { SlashCommand, ApiProfile } from '@/lib/types';
+import Modal from '@cloudscape-design/components/modal';
+import type { SlashCommand, ApiProfile, ApiTestResult, FieldMapping } from '@/lib/types';
 import { ResponseType } from '@/lib/types';
+import { ResponseTemplate, generateCustomLogic } from '@/lib/code-generator';
+import { getSelectableFields } from '@/lib/api-response-parser';
 
 // ReactFlowEditorを動的にインポート（クライアントサイドのみ）
 const ReactFlowEditor = lazy(() => import('@/components/reactflow/ReactFlowEditor').then(mod => ({ default: mod.ReactFlowEditor })));
@@ -47,6 +50,13 @@ export function Step3Commands({
     codeSnippet: '',
     options: [],
   });
+
+  // APIテスト用のstate
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<ApiTestResult | null>(null);
+  const [showFieldSelector, setShowFieldSelector] = useState(false);
+  const [selectedFields, setSelectedFields] = useState<FieldMapping[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<ResponseTemplate>(ResponseTemplate.SIMPLE_TEXT);
 
   // コマンドオプション編集用の状態
   const [isAddingOption, setIsAddingOption] = useState(false);
@@ -171,6 +181,87 @@ export function Step3Commands({
       description: '',
       type: 'string',
       required: false,
+    });
+  };
+
+  // APIテストハンドラー
+  const handleTestApi = async () => {
+    if (!formData.apiProfileId || !formData.apiEndpoint) {
+      alert('APIプロファイルとエンドポイントを入力してください');
+      return;
+    }
+
+    const selectedProfile = apiProfiles.find(p => p.id === formData.apiProfileId);
+    if (!selectedProfile) {
+      alert('選択されたAPIプロファイルが見つかりません');
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch('/api/test-api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiProfile: selectedProfile,
+          endpoint: formData.apiEndpoint,
+          testParams: {},
+        }),
+      });
+
+      const result: ApiTestResult = await response.json();
+      setTestResult(result);
+
+      if (result.success && result.fields) {
+        // 自動的にフィールドマッピングを作成（すべてのプリミティブ型フィールドをデフォルト選択）
+        const selectableFields = getSelectableFields(result.fields);
+        const defaultMappings: FieldMapping[] = selectableFields.map(field => ({
+          fieldPath: field.path,
+          displayLabel: field.path.split('.').pop() || field.path,
+          formatString: '{value}',
+        }));
+        setSelectedFields(defaultMappings);
+      }
+    } catch (error: any) {
+      setTestResult({
+        success: false,
+        timestamp: new Date(),
+        error: error.message || 'APIテストに失敗しました',
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  // コード自動生成ハンドラー
+  const handleGenerateCode = () => {
+    if (selectedFields.length === 0) {
+      alert('フィールドを選択してください');
+      return;
+    }
+
+    const generatedCode = generateCustomLogic(selectedFields, selectedTemplate);
+    setFormData({ ...formData, codeSnippet: generatedCode });
+    setShowFieldSelector(false);
+  };
+
+  // フィールド選択のトグル
+  const toggleFieldSelection = (fieldPath: string) => {
+    setSelectedFields(prev => {
+      const exists = prev.find(f => f.fieldPath === fieldPath);
+      if (exists) {
+        return prev.filter(f => f.fieldPath !== fieldPath);
+      } else {
+        return [...prev, {
+          fieldPath,
+          displayLabel: fieldPath.split('.').pop() || fieldPath,
+          formatString: '{value}',
+        }];
+      }
     });
   };
 
@@ -378,6 +469,46 @@ export function Step3Commands({
             />
           </FormField>
 
+          {/* APIテストボタン */}
+          <FormField>
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button
+                onClick={handleTestApi}
+                disabled={isTesting || !formData.apiProfileId || !formData.apiEndpoint}
+                loading={isTesting}
+              >
+                {isTesting ? 'テスト中...' : 'APIをテスト'}
+              </Button>
+              {testResult && testResult.success && (
+                <Button
+                  onClick={() => setShowFieldSelector(true)}
+                  variant="primary"
+                >
+                  コードを自動生成
+                </Button>
+              )}
+            </SpaceBetween>
+          </FormField>
+
+          {/* テスト結果の表示 */}
+          {testResult && (
+            <Alert
+              type={testResult.success ? 'success' : 'error'}
+              header={testResult.success ? 'APIテスト成功' : 'APIテストエラー'}
+            >
+              {testResult.success ? (
+                <div>
+                  <div>ステータスコード: {testResult.statusCode}</div>
+                  {testResult.fields && (
+                    <div>{testResult.fields.length}個のフィールドを検出しました</div>
+                  )}
+                </div>
+              ) : (
+                <div>{testResult.error}</div>
+              )}
+            </Alert>
+          )}
+
           <FormField
             label="カスタムロジック（オプション）"
             description="JavaScriptコード。apiResponseオブジェクトとinteraction.options（コマンドオプションの値）が利用可能"
@@ -396,6 +527,70 @@ return {
           </FormField>
         </>
       )}
+
+      {/* フィールド選択モーダル */}
+      <Modal
+        visible={showFieldSelector}
+        onDismiss={() => setShowFieldSelector(false)}
+        header="フィールドを選択してコードを生成"
+        size="large"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowFieldSelector(false)}>
+                キャンセル
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleGenerateCode}
+                disabled={selectedFields.length === 0}
+              >
+                コードを生成 ({selectedFields.length}個選択)
+              </Button>
+            </SpaceBetween>
+          </Box>
+        }
+      >
+        {testResult && testResult.fields && (
+          <SpaceBetween size="m">
+            <FormField label="テンプレート">
+              <Select
+                selectedOption={{ value: selectedTemplate, label: selectedTemplate }}
+                onChange={({ detail }) => setSelectedTemplate(detail.selectedOption.value as ResponseTemplate)}
+                options={[
+                  { value: ResponseTemplate.SIMPLE_TEXT, label: 'シンプルテキスト' },
+                  { value: ResponseTemplate.MULTI_LINE, label: '複数行テキスト' },
+                  { value: ResponseTemplate.EMBED, label: 'Discord Embed' },
+                  { value: ResponseTemplate.JSON_FORMATTED, label: 'JSON整形' },
+                ]}
+              />
+            </FormField>
+
+            <FormField label="フィールドを選択">
+              <SpaceBetween size="xs">
+                {getSelectableFields(testResult.fields).map((field) => (
+                  <div key={field.path} style={{ padding: '8px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                    <label style={{ display: 'flex', alignItems: 'start', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedFields.some(f => f.fieldPath === field.path)}
+                        onChange={() => toggleFieldSelection(field.path)}
+                        style={{ marginTop: '2px' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{field.path}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>
+                          型: {field.type} {field.sampleValue !== undefined && `| サンプル: ${JSON.stringify(field.sampleValue).slice(0, 50)}...`}
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </SpaceBetween>
+            </FormField>
+          </SpaceBetween>
+        )}
+      </Modal>
 
       <SpaceBetween direction="horizontal" size="xs">
         <Button
@@ -447,7 +642,7 @@ return {
         >
           <SpaceBetween size="l">{editorMode === 'visual' ? (
             <Suspense fallback={<Box>ビジュアルエディタを読み込み中...</Box>}>
-              <ReactFlowEditor commands={commands} onChange={onChange} />
+              <ReactFlowEditor commands={commands} onChange={onChange} apiProfiles={apiProfiles} />
             </Suspense>
           ) : (
             <>
