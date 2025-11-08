@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -39,12 +39,26 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>([]);
 
+  // プロップから来た変更を追跡するRef
+  const isUpdatingFromPropsRef = useRef(false);
+  const prevCommandsRef = useRef(commands);
+
   // 初回および commands が変更されたときにノードとエッジを生成
+  // このエフェクトはプロップの変更にのみ反応
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
-    setNodes(newNodes);
-    setEdges(newEdges);
-  }, [commands, setNodes, setEdges]);
+    // プロップが実際に変更されているかをチェック
+    if (JSON.stringify(prevCommandsRef.current) !== JSON.stringify(commands)) {
+      isUpdatingFromPropsRef.current = true;
+      const { nodes: newNodes, edges: newEdges } = commandsToReactFlow(commands);
+      setNodes(newNodes);
+      setEdges(newEdges);
+      prevCommandsRef.current = commands;
+      // 次のレンダリングで戻す
+      setTimeout(() => {
+        isUpdatingFromPropsRef.current = false;
+      }, 0);
+    }
+  }, [commands]);
 
   // 接続時の処理
   const onConnect: OnConnect = useCallback(
@@ -80,7 +94,12 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   );
 
   // ノードやエッジの変更をSlashCommandに変換
+  // ユーザー初期化の変更のみonChangeを呼び出す（プロップ更新からは呼ばない）
   useEffect(() => {
+    // プロップ更新中は何もしない
+    if (isUpdatingFromPropsRef.current) {
+      return;
+    }
     const updatedCommands = reactFlowToCommands(nodes, edges);
     onChange(updatedCommands);
   }, [nodes, edges, onChange]);
