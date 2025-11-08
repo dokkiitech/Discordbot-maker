@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Bot, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { StepIndicator } from '@/components/steps/StepIndicator';
 import { Step1Repository } from '@/components/steps/Step1Repository';
 import { Step2ApiProfiles } from '@/components/steps/Step2ApiProfiles';
@@ -107,7 +106,6 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-foreground">DiscordBot-Maker</h1>
           </div>
           <div className="flex items-center gap-4">
-            <ThemeToggle />
             <div className="flex items-center gap-2">
               <Image
                 src={user.avatar_url}

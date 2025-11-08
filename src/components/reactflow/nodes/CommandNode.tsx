@@ -64,11 +64,11 @@ const CommandNodeComponent = (props: any) => {
   }, [id, description, setNodes]);
 
   return (
-    <div className="px-2 py-2 shadow-lg rounded-lg bg-blue-50 border-2 border-blue-500 min-w-[200px]">
-      <div className="font-bold text-blue-700 mb-2 text-xs">Discord Command</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg border-2 min-w-[200px]" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 10%, var(--background))', borderColor: 'var(--primary)' }}>
+      <div className="font-bold mb-2 text-xs" style={{ color: 'var(--primary)' }}>Discord Command</div>
 
       <div className="mb-3">
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>
           コマンド名:
         </label>
         <input
@@ -77,13 +77,14 @@ const CommandNodeComponent = (props: any) => {
           onChange={onNameChange}
           onBlur={onNameBlur}
           onMouseDown={handleInputMouseDown}
-          className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="nodrag w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2"
+          style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
           placeholder="/mycommand"
         />
       </div>
 
       <div className="mb-2">
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>
           説明:
         </label>
         <input
@@ -92,7 +93,8 @@ const CommandNodeComponent = (props: any) => {
           onChange={onDescriptionChange}
           onBlur={onDescriptionBlur}
           onMouseDown={handleInputMouseDown}
-          className="nodrag w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="nodrag w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2"
+          style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
           placeholder="コマンドの説明"
         />
       </div>

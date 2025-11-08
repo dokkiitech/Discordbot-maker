@@ -199,12 +199,12 @@ export function Step4Review({
                       id: 'value',
                       header: '値',
                       cell: (item: [string, string]) => (
-                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{item[1]}</code>
+                        <code className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--border)' }}>{item[1]}</code>
                       ),
                     },
                     {
                       id: 'actions',
-                      header: 'アクション',
+                      header: 'コピー',
                       cell: (item: [string, string]) => (
                         <Button
                           variant="icon"
@@ -260,7 +260,7 @@ export function Step4Review({
 
                     <Box margin={{ top: 's' }}>
                       <Box variant="strong">VPS/EC2 + PM2</Box>
-                      <pre className="bg-gray-50 p-2 rounded mt-1 overflow-x-auto text-xs">
+                      <pre className="p-2 rounded mt-1 overflow-x-auto text-xs" style={{ backgroundColor: 'var(--card-background)' }}>
 {`# PM2をインストール
 npm install -g pm2
 

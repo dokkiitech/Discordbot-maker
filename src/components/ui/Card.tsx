@@ -28,7 +28,7 @@ export function CardBody({ children, className }: CardProps) {
 
 export function CardFooter({ children, className }: CardProps) {
   return (
-    <div className={cn('px-6 py-4 border-t border-border dark:border-gray-700 bg-gray-50 dark:bg-gray-700', className)}>
+    <div className={cn('px-6 py-4 border-t border-border', className)} style={{ backgroundColor: 'var(--card-background)' }}>
       {children}
     </div>
   );
