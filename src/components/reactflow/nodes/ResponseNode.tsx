@@ -135,8 +135,8 @@ const ResponseNodeComponent = ({ data, id }: NodeProps<ResponseNodeData>) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 !bg-purple-500 border-2 border-white"
-        style={{ left: -6 }}
+        className="w-6 h-6 !bg-purple-500 border-2 border-white"
+        style={{ left: -12 }}
       />
 
       <div className="space-y-2 text-xs">

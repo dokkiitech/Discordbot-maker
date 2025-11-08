@@ -108,8 +108,8 @@ const OptionNodeComponent = ({ data, id }: NodeProps<OptionNodeData>) => {
       <Handle
         type="target"
         position={Position.Top}
-        className="w-3 h-3 !bg-green-500 border-2 border-white"
-        style={{ top: -6 }}
+        className="w-6 h-6 !bg-green-500 border-2 border-white"
+        style={{ top: -12 }}
       />
 
       <div className="space-y-2 text-xs">
@@ -174,8 +174,8 @@ const OptionNodeComponent = ({ data, id }: NodeProps<OptionNodeData>) => {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="w-3 h-3 !bg-green-500 border-2 border-white"
-        style={{ bottom: -6 }}
+        className="w-6 h-6 !bg-green-500 border-2 border-white"
+        style={{ bottom: -12 }}
       />
     </div>
   );

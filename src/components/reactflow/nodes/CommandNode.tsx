@@ -100,8 +100,8 @@ const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
         type="source"
         position={Position.Bottom}
         id="options"
-        className="w-3 h-3 !bg-green-500 border-2 border-white"
-        style={{ bottom: -6 }}
+        className="w-6 h-6 !bg-green-500 border-2 border-white"
+        style={{ bottom: -12 }}
       />
 
       {/* 応答への接続ポイント */}
@@ -109,8 +109,8 @@ const CommandNodeComponent = ({ data, id }: NodeProps<CommandNodeData>) => {
         type="source"
         position={Position.Right}
         id="response"
-        className="w-3 h-3 !bg-purple-500 border-2 border-white"
-        style={{ right: -6 }}
+        className="w-6 h-6 !bg-purple-500 border-2 border-white"
+        style={{ right: -12 }}
       />
     </div>
   );
