@@ -3,6 +3,7 @@ import { AppNode, AppEdge } from './reactflow-types';
 
 /**
  * SlashCommand配列をReact Flowのノード・エッジに変換
+ * レスポンシブレイアウト対応: ノード数と内容に応じて動的に配置
  */
 export function commandsToReactFlow(
   commands: SlashCommand[]
@@ -10,7 +11,13 @@ export function commandsToReactFlow(
   const nodes: AppNode[] = [];
   const edges: AppEdge[] = [];
 
-  let yOffset = 50;
+  // レスポンシブなオフセット計算
+  // 縦方向を大幅に圧縮してワンページに収まるように調整
+  const commandCount = commands.length;
+  const baseVerticalSpacing = Math.max(180, 300 - commandCount * 20); // より圧縮された行間隔
+  const horizontalSpacing = 280; // コマンド → レスポンス間の距離
+
+  let yOffset = 30;
   const xOffset = 50;
 
   commands.forEach((command, cmdIndex) => {
@@ -29,9 +36,11 @@ export function commandsToReactFlow(
     nodes.push(commandNode);
 
     // 2. オプションノードを作成
+    let maxOptionHeight = 0;
     if (command.options && command.options.length > 0) {
-      let optionYOffset = yOffset + 200;
+      let optionYOffset = yOffset + 110;
       let previousOptionId: string | null = null;
+      const optionVerticalGap = 95; // オプション間のギャップをさらに圧縮
 
       command.options.forEach((option, optIndex) => {
         const optionNodeId = `${commandNodeId}-option-${optIndex}`;
@@ -70,7 +79,8 @@ export function commandsToReactFlow(
         }
 
         previousOptionId = optionNodeId;
-        optionYOffset += 150;
+        optionYOffset += optionVerticalGap;
+        maxOptionHeight = optionYOffset - yOffset;
       });
     }
 
@@ -79,7 +89,7 @@ export function commandsToReactFlow(
     const responseNode: AppNode = {
       id: responseNodeId,
       type: 'response',
-      position: { x: xOffset + 450, y: yOffset },
+      position: { x: xOffset + horizontalSpacing, y: yOffset },
       data: {
         responseType: command.responseType,
         staticText: command.staticText,
@@ -100,7 +110,8 @@ export function commandsToReactFlow(
       animated: true,
     });
 
-    yOffset += 500; // 次のコマンド用のオフセット
+    // 次のコマンド用のオフセット: オプションの高さを考慮
+    yOffset += Math.max(baseVerticalSpacing, maxOptionHeight + 150);
   });
 
   return { nodes, edges };

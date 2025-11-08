@@ -133,7 +133,7 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '800px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', aspectRatio: '16 / 9', maxHeight: '100vh' }}>
       {/* ノード追加ツールバー */}
       <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderBottom: '1px solid #bfdbfe', display: 'flex', gap: '8px', flexShrink: 0 }}>
         <button
@@ -193,9 +193,10 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
+          fitViewOptions={{ padding: 0.15, minZoom: 0.3, maxZoom: 1.5 }}
           className="bg-gray-50"
-          minZoom={0.2}
-          maxZoom={2}
+          minZoom={0.1}
+          maxZoom={3}
         >
           <Background color="#cbd5e1" gap={16} />
           <Controls />
