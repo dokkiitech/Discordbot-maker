@@ -201,12 +201,12 @@ function ReactFlowEditorInner({ commands, onChange }: ReactFlowEditorInnerProps)
           nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.15, minZoom: 0.3, maxZoom: 1.5 }}
-          className="bg-gray-50"
+          style={{ backgroundColor: 'var(--card-background)' }}
           minZoom={0.1}
           maxZoom={3}
           attributionPosition="bottom-left"
         >
-          <Background color="#cbd5e1" gap={16} />
+          <Background color="var(--border)" gap={16} />
           <Controls />
         </ReactFlow>
       </div>

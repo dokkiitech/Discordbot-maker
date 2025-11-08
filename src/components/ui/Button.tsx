@@ -18,7 +18,7 @@ export function Button({
 
   const variants = {
     primary: 'bg-primary text-white hover:opacity-90 focus:ring-primary',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600',
+    secondary: 'bg-secondary text-white hover:opacity-80 focus:ring-secondary',
     danger: 'bg-error text-white hover:opacity-90 focus:ring-error',
     ghost: 'text-foreground hover:opacity-80 focus:ring-primary',
   };

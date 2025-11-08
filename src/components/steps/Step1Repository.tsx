@@ -206,7 +206,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -237,7 +237,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -268,7 +268,7 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 dark:text-cyan-400 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
                             ここをクリックして
                           </a>
@@ -321,30 +321,33 @@ export function Step1Repository({
                               </>
                             ),
                           },
-                        ].map((item) => (
-                          <div
-                            key={item.value}
-                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                              (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value
-                                ? 'border-primary bg-primary dark:bg-primary dark:bg-opacity-20 bg-opacity-10'
-                                : 'border-border dark:border-border hover:opacity-80'
-                            }`}
-                            onClick={() => onChange(item.value)}
-                          >
-                            <div className="flex items-start gap-3">
-                              <input
-                                type="radio"
-                                checked={(value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value}
-                                onChange={() => onChange(item.value)}
-                                className="mt-1 w-4 h-4 text-primary border-border dark:border-border focus:ring-primary"
-                              />
-                              <div className="flex-1">
-                                <div className="font-semibold text-foreground">{item.label}</div>
-                                <div className="text-sm text-muted dark:text-muted mt-1">{item.description}</div>
+                        ].map((item) => {
+                          const isSelected = (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value;
+                          return (
+                            <div
+                              key={item.value}
+                              className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                                isSelected
+                                  ? 'border-primary bg-primary bg-opacity-10'
+                                  : 'border-border hover:opacity-80'
+                              }`}
+                              onClick={() => onChange(item.value)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <input
+                                  type="radio"
+                                  checked={isSelected}
+                                  onChange={() => onChange(item.value)}
+                                  className="mt-1 w-4 h-4 text-primary border-border focus:ring-primary"
+                                />
+                                <div className="flex-1">
+                                  <div className={`font-semibold ${isSelected ? 'text-white' : 'text-foreground'}`}>{item.label}</div>
+                                  <div className={`text-sm ${isSelected ? 'text-white' : 'text-muted'} mt-1`}>{item.description}</div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </FormField>
                   )}

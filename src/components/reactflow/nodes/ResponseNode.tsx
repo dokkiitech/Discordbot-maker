@@ -131,24 +131,25 @@ const ResponseNodeComponent = (props: any) => {
   }, [id, codeSnippet, setNodes]);
 
   return (
-    <div className="px-2 py-2 shadow-lg rounded-lg bg-purple-50 border-2 border-purple-500 min-w-[200px]">
-      <div className="font-bold text-purple-700 mb-2 text-xs">Response</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg border-2 min-w-[200px]" style={{ backgroundColor: 'color-mix(in srgb, var(--purple) 10%, var(--background))', borderColor: 'var(--purple)' }}>
+      <div className="font-bold mb-2 text-xs" style={{ color: 'var(--purple)' }}>Response</div>
 
       <Handle
         type="target"
         position={Position.Left}
-        className="w-6 h-6 !bg-purple-500 border-2 border-white"
-        style={{ left: -12 }}
+        className="w-6 h-6 !border-2 border-white"
+        style={{ left: -12, backgroundColor: 'var(--purple)' }}
       />
 
       <div className="space-y-2 text-xs">
         <div>
-          <label className="block font-medium text-gray-700 mb-1">応答タイプ:</label>
+          <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>応答タイプ:</label>
           <select
             value={responseType}
             onChange={onResponseTypeChange}
             onMouseDown={handleInputMouseDown}
-            className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
           >
             <option value={ResponseType.STATIC_TEXT}>静的テキスト</option>
             <option value={ResponseType.API_CALL}>API呼び出し</option>
@@ -157,13 +158,14 @@ const ResponseNodeComponent = (props: any) => {
 
         {responseType === ResponseType.STATIC_TEXT ? (
           <div>
-            <label className="block font-medium text-gray-700 mb-1">テキスト:</label>
+            <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>テキスト:</label>
             <textarea
               value={staticText}
               onChange={onStaticTextChange}
               onBlur={onStaticTextBlur}
               onMouseDown={handleInputMouseDown}
-              className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 resize-none"
+              style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
               rows={3}
               placeholder="応答メッセージ"
             />
@@ -171,37 +173,40 @@ const ResponseNodeComponent = (props: any) => {
         ) : (
           <>
             <div>
-              <label className="block font-medium text-gray-700 mb-1">API Profile ID:</label>
+              <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>API Profile ID:</label>
               <input
                 type="text"
                 value={apiProfileId}
                 onChange={onApiProfileIdChange}
                 onBlur={onApiProfileIdBlur}
                 onMouseDown={handleInputMouseDown}
-                className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
                 placeholder="api_profile_id"
               />
             </div>
             <div>
-              <label className="block font-medium text-gray-700 mb-1">Endpoint:</label>
+              <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>Endpoint:</label>
               <input
                 type="text"
                 value={apiEndpoint}
                 onChange={onApiEndpointChange}
                 onBlur={onApiEndpointBlur}
                 onMouseDown={handleInputMouseDown}
-                className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
                 placeholder="/api/endpoint"
               />
             </div>
             <div>
-              <label className="block font-medium text-gray-700 mb-1">カスタムロジック:</label>
+              <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>カスタムロジック:</label>
               <textarea
                 value={codeSnippet}
                 onChange={onCodeSnippetChange}
                 onBlur={onCodeSnippetBlur}
                 onMouseDown={handleInputMouseDown}
-                className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none font-mono"
+                className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 resize-none font-mono"
+                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
                 rows={3}
                 placeholder="const data = await apiResponse.json();"
               />
