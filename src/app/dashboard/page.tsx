@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Bot, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StepIndicator } from '@/components/steps/StepIndicator';
@@ -72,6 +73,29 @@ export default function DashboardPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleSubmit = async () => {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        repository: repositoryConfig,
+        botConfig,
+        apiProfiles,
+        commands,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate bot');
+    }
+
+    const result = await response.json();
+    return result;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -83,10 +107,12 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <img
+              <Image
                 src={user.avatar_url}
                 alt={user.login}
-                className="w-8 h-8 rounded-full"
+                width={32}
+                height={32}
+                className="rounded-full"
               />
               <span className="text-sm text-gray-700">{user.login}</span>
             </div>
@@ -142,6 +168,7 @@ export default function DashboardPage() {
                 apiProfiles={apiProfiles}
                 commands={commands}
                 onPrev={handlePrev}
+                onSubmit={handleSubmit}
               />
             )}
           </div>

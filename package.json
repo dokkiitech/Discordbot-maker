@@ -10,27 +10,31 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@cloudscape-design/components": "^3.0.1128",
+    "@cloudscape-design/global-styles": "^1.0.47",
+    "@hookform/resolvers": "^3.9.1",
+    "@octokit/rest": "^20.1.1",
+    "clsx": "^2.1.1",
+    "firebase": "^12.5.0",
+    "lucide-react": "^0.454.0",
     "next": "^14.2.18",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "firebase": "^12.5.0",
-    "@octokit/rest": "^20.1.1",
-    "zod": "^3.23.8",
     "react-hook-form": "^7.53.2",
-    "@hookform/resolvers": "^3.9.1",
-    "lucide-react": "^0.454.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "typescript": "^5",
-    "tailwindcss": "^3.4.15",
-    "postcss": "^8",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
-    "eslint-config-next": "14.2.18"
+    "eslint-config-next": "14.2.18",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5"
   }
 }
