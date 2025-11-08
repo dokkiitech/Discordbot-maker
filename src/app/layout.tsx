@@ -5,6 +5,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DiscordBot-Maker",
   description: "Discord Botを簡単に生成・デプロイできるテンプレートメーカー",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
