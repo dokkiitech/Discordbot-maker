@@ -475,7 +475,7 @@ ${optionGetters}
     }).join('\n');
 
     customLogic = `
-    const data = await apiResponse.json();
+    const data = await apiResponse.json() as any;
     const parts: string[] = [];
 ${mappingLogic}
     return {
@@ -484,7 +484,7 @@ ${mappingLogic}
   } else {
     // デフォルト: 生のJSON出力
     customLogic = `
-    const data = await apiResponse.json();
+    const data = await apiResponse.json() as any;
     return {
       content: JSON.stringify(data, null, 2),
     };`;
@@ -971,14 +971,14 @@ ${optionGetters}
     }).join('\n');
 
     customLogic = `
-    const data = await apiResponse.json();
+    const data = await apiResponse.json() as any;
     const parts: string[] = [];
 ${mappingLogic}
     return parts.join('\\n');`;
   } else {
     // デフォルト: 生のJSON出力
     customLogic = `
-    const data = await apiResponse.json();
+    const data = await apiResponse.json() as any;
     return JSON.stringify(data, null, 2);`;
   }
 
