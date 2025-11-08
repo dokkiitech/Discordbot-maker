@@ -476,7 +476,7 @@ function generateCommandHandler(
 function generateWranglerToml(botConfig: BotConfig): string {
   return `name = "${botConfig.name.toLowerCase().replace(/\s+/g, '-')}"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-01"
 
 [vars]
 DISCORD_APPLICATION_ID = "${botConfig.applicationId || 'YOUR_DISCORD_APPLICATION_ID'}"

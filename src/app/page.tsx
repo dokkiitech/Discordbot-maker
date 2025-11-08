@@ -127,7 +127,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t bg-white mt-24">
         <div className="container mx-auto px-4 py-8 text-center text-gray-600">
-          <p>© 2024 DiscordBot-Maker. MIT License.</p>
+          <p>© 2025 DiscordBot-Maker. MIT License.</p>
         </div>
       </footer>
     </div>
