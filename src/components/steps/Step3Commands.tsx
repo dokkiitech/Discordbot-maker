@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import Container from '@cloudscape-design/components/container';
 import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
@@ -12,8 +12,12 @@ import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
 import Box from '@cloudscape-design/components/box';
 import Alert from '@cloudscape-design/components/alert';
+import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import type { SlashCommand, ApiProfile } from '@/lib/types';
 import { ResponseType } from '@/lib/types';
+
+// ReactFlowEditorを動的にインポート（クライアントサイドのみ）
+const ReactFlowEditor = lazy(() => import('@/components/reactflow/ReactFlowEditor').then(mod => ({ default: mod.ReactFlowEditor })));
 
 interface Step3CommandsProps {
   commands: SlashCommand[];
@@ -30,6 +34,7 @@ export function Step3Commands({
   onNext,
   onPrev,
 }: Step3CommandsProps) {
+  const [editorMode, setEditorMode] = useState<'form' | 'visual'>('form');
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<SlashCommand>>({
@@ -425,12 +430,27 @@ return {
             <Header
               variant="h2"
               description="Botが応答するスラッシュコマンドを追加してください"
+              actions={
+                <SegmentedControl
+                  selectedId={editorMode}
+                  onChange={({ detail }) => setEditorMode(detail.selectedId as 'form' | 'visual')}
+                  options={[
+                    { text: 'フォーム', id: 'form' },
+                    { text: 'ビジュアル', id: 'visual' },
+                  ]}
+                />
+              }
             >
               ステップ 3: スラッシュコマンド定義
             </Header>
           }
         >
-          <SpaceBetween size="l">
+          <SpaceBetween size="l">{editorMode === 'visual' ? (
+            <Suspense fallback={<Box>ビジュアルエディタを読み込み中...</Box>}>
+              <ReactFlowEditor commands={commands} onChange={onChange} />
+            </Suspense>
+          ) : (
+            <>
             {/* 既存のコマンド一覧 */}
             {commands.map((command) => (
               <Container key={command.id}>
@@ -499,6 +519,8 @@ return {
                 まだコマンドが追加されていません。上のボタンから追加してください。
               </Alert>
             )}
+            </>
+          )}
           </SpaceBetween>
         </Container>
       </SpaceBetween>
