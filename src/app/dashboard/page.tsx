@@ -52,10 +52,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted">読み込み中...</p>
         </div>
       </div>
     );
@@ -97,13 +97,13 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen text-foreground" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="border-b border-border liquid-blur-md header-depth-shadow" style={{ backgroundColor: 'var(--card-background)' }}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bot className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">DiscordBot-Maker</h1>
+            <Bot className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">DiscordBot-Maker</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 height={32}
                 className="rounded-full"
               />
-              <span className="text-sm text-gray-700">{user.login}</span>
+              <span className="text-sm text-foreground">{user.login}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="w-4 h-4 mr-2" />

@@ -13,18 +13,19 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
+            {props.required && <span className="ml-1" style={{ color: 'var(--error)' }}>*</span>}
           </label>
         )}
         <select
           ref={ref}
           className={cn(
-            'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white',
-            error ? 'border-red-500' : 'border-gray-300',
+            'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground',
+            error ? 'border-error' : 'border-border',
             className
           )}
+          style={{ backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
           {...props}
         >
           {options.map((option) => (
@@ -33,9 +34,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>{helperText}</p>
         )}
       </div>
     );

@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
-import { OptionNodeData } from '@/lib/reactflow-types';
+import type { OptionNodeData } from '@/lib/reactflow-types';
 
 const OptionNodeComponent = ({ data, id }: NodeProps) => {
   const { setNodes } = useReactFlow();
@@ -104,50 +104,53 @@ const OptionNodeComponent = ({ data, id }: NodeProps) => {
   }, [id, setNodes]);
 
   return (
-    <div className="px-2 py-2 shadow-lg rounded-lg bg-green-50 border-2 border-green-500 min-w-[180px]">
-      <div className="font-bold text-green-700 mb-2 text-xs">Option</div>
+    <div className="px-2 py-2 shadow-lg rounded-lg border-2 min-w-[180px]" style={{ backgroundColor: 'color-mix(in srgb, var(--success) 10%, var(--background))', borderColor: 'var(--success)' }}>
+      <div className="font-bold mb-2 text-xs" style={{ color: 'var(--success)' }}>Option</div>
 
       <Handle
         type="target"
         position={Position.Top}
-        className="w-6 h-6 !bg-green-500 border-2 border-white"
-        style={{ top: -12 }}
+        className="w-6 h-6 !border-2 border-white"
+        style={{ top: -12, backgroundColor: 'var(--success)' }}
       />
 
       <div className="space-y-2 text-xs">
         <div>
-          <label className="block font-medium text-gray-700 mb-1">名前:</label>
+          <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>名前:</label>
           <input
             type="text"
             value={name}
             onChange={onNameChange}
             onBlur={onNameBlur}
             onMouseDown={handleInputMouseDown}
-            className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
             placeholder="option_name"
           />
         </div>
 
         <div>
-          <label className="block font-medium text-gray-700 mb-1">説明:</label>
+          <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>説明:</label>
           <input
             type="text"
             value={description}
             onChange={onDescriptionChange}
             onBlur={onDescriptionBlur}
             onMouseDown={handleInputMouseDown}
-            className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
             placeholder="オプションの説明"
           />
         </div>
 
         <div>
-          <label className="block font-medium text-gray-700 mb-1">型:</label>
+          <label className="block font-medium mb-1" style={{ color: 'var(--muted)' }}>型:</label>
           <select
             value={type}
             onChange={onTypeChange}
             onMouseDown={handleInputMouseDown}
-            className="nodrag w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="nodrag w-full px-2 py-1 border rounded focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card-background)', color: 'var(--foreground)' }}
           >
             <option value="string">文字列</option>
             <option value="integer">整数</option>
@@ -165,9 +168,10 @@ const OptionNodeComponent = ({ data, id }: NodeProps) => {
             checked={required}
             onChange={onRequiredChange}
             onMouseDown={handleInputMouseDown}
-            className="nodrag w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+            className="nodrag w-4 h-4 border-2 rounded"
+            style={{ borderColor: 'var(--border)', accentColor: 'var(--success)' }}
           />
-          <label htmlFor={`${id}-required`} className="ml-2 font-medium text-gray-700">
+          <label htmlFor={`${id}-required`} className="ml-2 font-medium" style={{ color: 'var(--muted)' }}>
             必須
           </label>
         </div>
@@ -176,8 +180,8 @@ const OptionNodeComponent = ({ data, id }: NodeProps) => {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="w-6 h-6 !bg-green-500 border-2 border-white"
-        style={{ bottom: -12 }}
+        className="w-6 h-6 !border-2 border-white"
+        style={{ bottom: -12, backgroundColor: 'var(--success)' }}
       />
     </div>
   );

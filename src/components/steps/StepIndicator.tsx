@@ -14,7 +14,7 @@ const steps = [
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
-    <div className="w-full">
+    <div className="w-full p-4 rounded-lg liquid-blur-md" style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.number} className="flex items-center flex-1">
@@ -22,12 +22,12 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors',
+                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors text-white',
                   currentStep > step.number
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-success'
                     : currentStep === step.number
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                    ? 'bg-primary'
+                    : 'bg-muted'
                 )}
               >
                 {currentStep > step.number ? (
@@ -37,10 +37,10 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
                 )}
               </div>
               <p
-                className={cn(
-                  'mt-2 text-sm font-medium',
-                  currentStep >= step.number ? 'text-gray-900' : 'text-gray-500'
-                )}
+                className="mt-2 text-sm font-medium"
+                style={{
+                  color: currentStep >= step.number ? 'var(--foreground)' : 'var(--muted)'
+                }}
               >
                 {step.title}
               </p>
@@ -50,10 +50,10 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
             {index < steps.length - 1 && (
               <div className="flex-1 h-1 mx-4 -mt-8">
                 <div
-                  className={cn(
-                    'h-full transition-colors',
-                    currentStep > step.number ? 'bg-green-600' : 'bg-gray-200'
-                  )}
+                  className="h-full transition-colors"
+                  style={{
+                    backgroundColor: currentStep > step.number ? 'var(--success)' : 'var(--border)'
+                  }}
                 />
               </div>
             )}

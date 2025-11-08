@@ -10,7 +10,6 @@ import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Textarea from '@cloudscape-design/components/textarea';
 import Checkbox from '@cloudscape-design/components/checkbox';
-import RadioGroup from '@cloudscape-design/components/radio-group';
 import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
@@ -39,7 +38,6 @@ export function Step1Repository({
   onNext,
 }: Step1RepositoryProps) {
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors },
@@ -57,8 +55,20 @@ export function Step1Repository({
     onNext();
   };
 
+  const handleFormSubmit = handleSubmit((data) => {
+    onSubmit(data);
+  }, () => {
+    // エラーがある場合、フォームの上部にスクロール
+    setTimeout(() => {
+      const formElement = document.querySelector('form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 0);
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleFormSubmit}>
       <Form
         actions={
           <SpaceBetween direction="horizontal" size="xs">
@@ -206,11 +216,11 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
-                            こちら＞general information
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          general informationから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.applicationId?.message}
@@ -237,11 +247,11 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
-                            こちら＞general information
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          general informationから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.publicKey?.message}
@@ -268,11 +278,11 @@ export function Step1Repository({
                             href="https://discord.com/developers/applications"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline cursor-pointer"
+                            className="text-primary hover:underline cursor-pointer"
                           >
-                            こちら＞Bot
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          Botから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.botToken?.message}
@@ -321,30 +331,33 @@ export function Step1Repository({
                               </>
                             ),
                           },
-                        ].map((item) => (
-                          <div
-                            key={item.value}
-                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                              (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                            }`}
-                            onClick={() => onChange(item.value)}
-                          >
-                            <div className="flex items-start gap-3">
-                              <input
-                                type="radio"
-                                checked={(value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value}
-                                onChange={() => onChange(item.value)}
-                                className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                              />
-                              <div className="flex-1">
-                                <div className="font-semibold text-gray-900">{item.label}</div>
-                                <div className="text-sm text-gray-600 mt-1">{item.description}</div>
+                        ].map((item) => {
+                          const isSelected = (value || BotDeploymentType.INTERACTIONS_ENDPOINT) === item.value;
+                          return (
+                            <div
+                              key={item.value}
+                              className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                                isSelected
+                                  ? 'border-primary bg-primary bg-opacity-10'
+                                  : 'border-border hover:opacity-80'
+                              }`}
+                              onClick={() => onChange(item.value)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <input
+                                  type="radio"
+                                  checked={isSelected}
+                                  onChange={() => onChange(item.value)}
+                                  className="mt-1 w-4 h-4 text-primary border-border focus:ring-primary"
+                                />
+                                <div className="flex-1">
+                                  <div className={`font-semibold ${isSelected ? 'text-white' : 'text-foreground'}`}>{item.label}</div>
+                                  <div className={`text-sm ${isSelected ? 'text-white' : 'text-muted'} mt-1`}>{item.description}</div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </FormField>
                   )}
