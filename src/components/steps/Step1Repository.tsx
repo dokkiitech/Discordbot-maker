@@ -208,9 +208,9 @@ export function Step1Repository({
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:underline cursor-pointer"
                           >
-                            こちら＞general information
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          general informationから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.applicationId?.message}
@@ -239,9 +239,9 @@ export function Step1Repository({
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:underline cursor-pointer"
                           >
-                            こちら＞general information
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          general informationから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.publicKey?.message}
@@ -270,9 +270,9 @@ export function Step1Repository({
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:underline cursor-pointer"
                           >
-                            こちら＞Bot
+                            ここをクリックして
                           </a>
-                          から取得できます
+                          Botから取得できます
                         </>
                       }
                       errorText={errors.botConfig?.botToken?.message}
