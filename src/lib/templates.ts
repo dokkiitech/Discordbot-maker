@@ -134,7 +134,7 @@ export const BOT_TEMPLATES: BotTemplate[] = [
       },
     ],
     tags: ['ゲーム', '娯楽', 'API不要', 'ランダム'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     setupInstructions: 'API不要！完全にローカルで動作します。',
   },
 
@@ -178,7 +178,7 @@ export const BOT_TEMPLATES: BotTemplate[] = [
       },
     ],
     tags: ['犬', '画像', 'API不要', '即利用可能'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     setupInstructions: 'APIキー不要！テンプレートを選んで「次へ」を押すだけで使えます。',
   },
 
@@ -248,7 +248,7 @@ export const BOT_TEMPLATES: BotTemplate[] = [
       },
     ],
     tags: ['ジョーク', '面白い', 'API不要', '即利用可能'],
-    difficulty: 'beginner',
+    difficulty: 'advanced',
     setupInstructions: 'APIキー不要！テンプレートを選んで「次へ」を押すだけで使えます。',
   },
 
@@ -307,7 +307,7 @@ export const BOT_TEMPLATES: BotTemplate[] = [
       },
     ],
     tags: ['クイズ', 'トリビア', '知識', 'API不要', '即利用可能'],
-    difficulty: 'beginner',
+    difficulty: 'advanced',
     setupInstructions: 'APIキー不要！テンプレートを選んで「次へ」を押すだけで使えます。',
   },
 
@@ -378,7 +378,7 @@ export const BOT_TEMPLATES: BotTemplate[] = [
       },
     ],
     tags: ['GitHub', '開発者', 'API不要'],
-    difficulty: 'beginner',
+    difficulty: 'advanced',
     setupInstructions: 'APIキー不要！テンプレートを選んで「次へ」を押すだけで使えます。\nレート制限: 1時間あたり60リクエスト',
   },
 ];
