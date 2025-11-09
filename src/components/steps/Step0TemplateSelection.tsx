@@ -16,6 +16,7 @@ import { IoGameController } from 'react-icons/io5';
 import { MdWavingHand } from 'react-icons/md';
 import { MdStar } from 'react-icons/md';
 import { BOT_TEMPLATES, BotTemplate } from '@/lib/templates';
+import { GlossaryTerm } from '@/components/ui/GlossaryTooltip';
 
 interface Step0TemplateSelectionProps {
   onTemplateSelect: (template: BotTemplate) => void;
@@ -58,7 +59,7 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
           variant="h2"
           description="ボットテンプレートから始めることで、素早くボットを作成できます。テンプレートをカスタマイズして、あなたのニーズに合わせたボットを作りましょう。"
         >
-          テンプレートを選択
+          <GlossaryTerm termKey="template">テンプレート</GlossaryTerm>を選択
         </Header>
       }
     >
