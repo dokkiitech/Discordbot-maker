@@ -75,7 +75,7 @@ git --version
                   <li>
                     以下のコマンドを入力してHomebrewをインストール：
                     <pre className="p-2 rounded mt-2 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+{`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`}
                     </pre>
                   </li>
                   <li>
