@@ -37,10 +37,9 @@ export function BooleanToggle({
           'transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'cursor-pointer flex-shrink-0',
-          enabled
-            ? 'bg-primary focus:ring-primary'
-            : 'bg-muted focus:ring-muted'
+          'focus:ring-primary'
         )}
+        style={enabled ? { backgroundColor: '#9cbb1c' } : { backgroundColor: 'var(--primary)' }}
       >
         {/* Slider circle */}
         <span
@@ -54,10 +53,7 @@ export function BooleanToggle({
 
       {/* Labels */}
       <span
-        className={cn(
-          'text-base font-semibold transition-colors duration-300',
-          enabled ? 'text-foreground' : 'text-muted'
-        )}
+        className="text-base font-semibold transition-colors duration-300 text-foreground"
       >
         {enabled ? labels.on : labels.off}
       </span>
