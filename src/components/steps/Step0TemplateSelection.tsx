@@ -6,7 +6,6 @@ import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Button from '@cloudscape-design/components/button';
 import Box from '@cloudscape-design/components/box';
-import Grid from '@cloudscape-design/components/grid';
 import Cards from '@cloudscape-design/components/cards';
 import Badge from '@cloudscape-design/components/badge';
 import { BiSolidDog } from 'react-icons/bi';
@@ -15,6 +14,7 @@ import { MdHelpOutline } from 'react-icons/md';
 import { FaGithub } from 'react-icons/fa';
 import { IoGameController } from 'react-icons/io5';
 import { MdWavingHand } from 'react-icons/md';
+import { MdStar } from 'react-icons/md';
 import { BOT_TEMPLATES, BotTemplate } from '@/lib/templates';
 
 interface Step0TemplateSelectionProps {
@@ -34,55 +34,22 @@ const getIconComponent = (iconName?: string): React.ComponentType<any> | null =>
   return iconName ? iconMap[iconName] || null : null;
 };
 
+const getDifficultyStars = (difficulty: BotTemplate['difficulty']): number => {
+  switch (difficulty) {
+    case 'beginner':
+      return 1;
+    case 'intermediate':
+      return 2;
+    case 'advanced':
+      return 3;
+    default:
+      return 1;
+  }
+};
+
 export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0TemplateSelectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<BotTemplate | null>(null);
-  const [filterCategory, setFilterCategory] = useState<string>('all');
 
-  const filteredTemplates =
-    filterCategory === 'all'
-      ? BOT_TEMPLATES
-      : BOT_TEMPLATES.filter((t) => t.category === filterCategory);
-
-  const getDifficultyColor = (difficulty: BotTemplate['difficulty']) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'green';
-      case 'intermediate':
-        return 'blue';
-      case 'advanced':
-        return 'red';
-      default:
-        return 'grey';
-    }
-  };
-
-  const getCategoryLabel = (category: BotTemplate['category']) => {
-    switch (category) {
-      case 'utility':
-        return 'ユーティリティ';
-      case 'fun':
-        return '娯楽';
-      case 'info':
-        return '情報';
-      case 'custom':
-        return 'カスタム';
-      default:
-        return category;
-    }
-  };
-
-  const getDifficultyLabel = (difficulty: BotTemplate['difficulty']) => {
-    switch (difficulty) {
-      case 'beginner':
-        return '初心者';
-      case 'intermediate':
-        return '中級';
-      case 'advanced':
-        return '上級';
-      default:
-        return difficulty;
-    }
-  };
 
   return (
     <Container
@@ -96,40 +63,6 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
       }
     >
       <SpaceBetween size="l">
-        {/* カテゴリフィルター */}
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant={filterCategory === 'all' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('all')}
-          >
-            すべて
-          </Button>
-          <Button
-            variant={filterCategory === 'fun' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('fun')}
-          >
-            🎮 娯楽
-          </Button>
-          <Button
-            variant={filterCategory === 'info' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('info')}
-          >
-            📚 情報
-          </Button>
-          <Button
-            variant={filterCategory === 'utility' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('utility')}
-          >
-            🔧 ユーティリティ
-          </Button>
-          <Button
-            variant={filterCategory === 'custom' ? 'primary' : 'normal'}
-            onClick={() => setFilterCategory('custom')}
-          >
-            📝 カスタム
-          </Button>
-        </div>
-
         {/* テンプレートカード */}
         <Cards
           cardDefinition={{
@@ -150,42 +83,39 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
               {
                 id: 'details',
                 content: (template) => (
-                  <div className="flex gap-2 flex-wrap mt-2">
-                    <Badge color={getDifficultyColor(template.difficulty)}>
-                      {getDifficultyLabel(template.difficulty)}
-                    </Badge>
-                    <Badge>{getCategoryLabel(template.category)}</Badge>
-                    {template.commands.length > 0 && (
-                      <Badge color="blue">{template.commands.length} コマンド</Badge>
-                    )}
-                    {template.apiProfiles.length > 0 && (
-                      <Badge color="green">{template.apiProfiles.length} API</Badge>
-                    )}
-                  </div>
-                ),
-              },
-              {
-                id: 'tags',
-                content: (template) => (
-                  <div className="flex gap-1 flex-wrap mt-2">
-                    {template.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: 'var(--color-background-control-disabled)',
-                          color: 'var(--color-text-body-secondary)',
-                        }}
-                      >
-                        #{tag}
-                      </span>
-                    ))}
+                  <div className="flex flex-col gap-3 mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">難易度:</span>
+                      <div className="flex gap-1">
+                        {Array.from({ length: 3 }).map((_, i) => {
+                          const isFilled = i < getDifficultyStars(template.difficulty);
+                          return (
+                            <MdStar
+                              key={i}
+                              className="w-5 h-5 transition-all"
+                              style={{
+                                color: isFilled ? 'var(--primary)' : 'rgba(0, 0, 0, 0.15)',
+                                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {template.commands.length > 0 && (
+                        <Badge color="blue">{template.commands.length} コマンド</Badge>
+                      )}
+                      {template.apiProfiles.length > 0 && (
+                        <Badge color="green">{template.apiProfiles.length} API</Badge>
+                      )}
+                    </div>
                   </div>
                 ),
               },
             ],
           }}
-          items={filteredTemplates}
+          items={BOT_TEMPLATES}
           selectionType="single"
           selectedItems={selectedTemplate ? [selectedTemplate] : []}
           onSelectionChange={({ detail }) => {
