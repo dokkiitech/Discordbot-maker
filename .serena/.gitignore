@@ -1,1 +1,8 @@
 /cache
+
+このプロジェクトはDiscord Botの作成を助けるためのwebアプリです。
+
+私は主にUIデザインの面でこのプロジェクトに関わっています。
+Design Systemは[AppleHumanInterface](https://developer.apple.com/jp/design/human-interface-guidelines/)を参考にしています。
+ユーザーの見えるところには絵文字を配置せずにSymbolsを使うことでシンプルかつわかりやすくデザインしています。
+ただし、README.mdなどのドキュメントには絵文字を使用しています。

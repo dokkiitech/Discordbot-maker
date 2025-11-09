@@ -50,7 +50,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--foreground)' }}>簡単セットアップ</h3>
             <p style={{ color: 'var(--muted)' }}>
-              直感的なビジュアルコーディング。複雑なコーディングは不要です。
+              テンプレートから、ゼロから。あなたのBotを簡単作成。
             </p>
           </div>
 
@@ -60,7 +60,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--foreground)' }}>自動コード生成</h3>
             <p style={{ color: 'var(--muted)' }}>
-              TypeScriptで記述された高品質なコードを自動生成します。
+              TypeScriptで記述された高品質なコードを自動生成。
             </p>
           </div>
 

@@ -280,12 +280,12 @@ export default {
 
       try {
         await registerCommands(env);
-        return new Response('✅ コマンド登録が完了しました！\\n\\nDiscordでスラッシュコマンドが使用可能になりました。', {
+        return new Response('[成功] コマンド登録が完了しました！\n\nDiscordでスラッシュコマンドが使用可能になりました。', {
           headers: { 'Content-Type': 'text/plain; charset=utf-8' },
         });
       } catch (error) {
         console.error('Failed to register commands:', error);
-        return new Response('❌ コマンド登録に失敗しました: ' + (error as Error).message, { 
+        return new Response('[エラー] コマンド登録に失敗しました: ' + (error as Error).message, {
           status: 500,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' },
         });
@@ -742,21 +742,21 @@ ${commandDefinitions}
 ${commandHandlers}
 
 client.on('ready', async () => {
-  console.log(\`✅ Logged in as \${client.user?.tag}!\`);
-  
+  console.log(\`[接続] Logged in as \${client.user?.tag}!\`);
+
   // スラッシュコマンドを登録
   try {
-    console.log('🔄 Registering slash commands...');
+    console.log('[登録中] Registering slash commands...');
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN!);
-    
+
     await rest.put(
       Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!),
       { body: commands }
     );
-    
-    console.log('✅ Successfully registered slash commands!');
+
+    console.log('[成功] Successfully registered slash commands!');
   } catch (error) {
-    console.error('❌ Error registering commands:', error);
+    console.error('[エラー] Error registering commands:', error);
   }
 });
 
