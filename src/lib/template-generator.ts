@@ -260,9 +260,14 @@ export interface Env {
   REGISTER_SECRET: string;
 ${apiProfiles
   .map(
-    (p) => `  ${p.envVarKey}: string;
-  ${p.envVarUrl}: string;`
+    (p) => {
+      const parts = [];
+      if (p.envVarKey) parts.push(`  ${p.envVarKey}: string;`);
+      if (p.envVarUrl) parts.push(`  ${p.envVarUrl}: string;`);
+      return parts.join('\n');
+    }
   )
+  .filter(s => s)
   .join('\n')}
 }
 
