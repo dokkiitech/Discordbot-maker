@@ -226,10 +226,41 @@ export function Step4Review({
                 {!isGateway ? (
                   <>
                     <ol>
-                      <li>リポジトリをクローン: <code>git clone {repoUrl}</code></li>
-                      <li>依存関係をインストール: <code>npm install</code></li>
-                      <li>環境変数を設定（上記参照）</li>
-                      <li>デプロイ: <code>npx wrangler deploy</code></li>
+                      <li>
+                        コードを保存する場所を決めて、そのフォルダに移動します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+{`# 例: Documentsフォルダに移動
+cd ~/Documents
+
+# または、任意の場所に移動
+cd 保存したいフォルダのパス`}
+                        </pre>
+                      </li>
+                      <li>
+                        GitHubからコードをダウンロード（クローン）します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+git clone {repoUrl}
+                        </pre>
+                      </li>
+                      <li>
+                        ダウンロードしたフォルダに移動します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+cd {repositoryConfig.name}
+                        </pre>
+                      </li>
+                      <li>
+                        必要なファイルをインストールします
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+npm install
+                        </pre>
+                      </li>
+                      <li>環境変数を設定（上記の表を参照してCloudflare Dashboardで設定）</li>
+                      <li>
+                        デプロイします
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+npx wrangler deploy
+                        </pre>
+                      </li>
                       <li>Discord Developer Portal で Interactions Endpoint URL を設定</li>
                       <li>デプロイしたURLの<code>/register?token=</code>エンドポイントにアクセスしてコマンド登録</li>
                     </ol>
@@ -241,11 +272,49 @@ export function Step4Review({
                   <>
                     <Box variant="h5">基本的な手順:</Box>
                     <ol>
-                      <li>リポジトリをクローン: <code>git clone {repoUrl}</code></li>
-                      <li>依存関係をインストール: <code>npm install</code></li>
-                      <li><code>.env</code>ファイルを作成して環境変数を設定（上記参照）</li>
-                      <li>ビルド: <code>npm run build</code></li>
-                      <li>ローカルでテスト: <code>npm run dev</code></li>
+                      <li>
+                        コードを保存する場所を決めて、そのフォルダに移動します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+{`# 例: Documentsフォルダに移動
+cd ~/Documents
+
+# または、任意の場所に移動
+cd 保存したいフォルダのパス`}
+                        </pre>
+                      </li>
+                      <li>
+                        GitHubからコードをダウンロード（クローン）します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+git clone {repoUrl}
+                        </pre>
+                      </li>
+                      <li>
+                        ダウンロードしたフォルダに移動します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+cd {repositoryConfig.name}
+                        </pre>
+                      </li>
+                      <li>
+                        必要なファイルをインストールします
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+npm install
+                        </pre>
+                      </li>
+                      <li>
+                        <code>.env</code>ファイルを作成して環境変数を設定（上記の表を参照）
+                      </li>
+                      <li>
+                        プログラムをビルドします
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+npm run build
+                        </pre>
+                      </li>
+                      <li>
+                        ローカルでテスト実行します
+                        <pre className="p-2 rounded mt-1 overflow-x-auto text-sm" style={{ backgroundColor: 'var(--card-background)' }}>
+npm run dev
+                        </pre>
+                      </li>
                     </ol>
 
                     <Box variant="h5" margin={{ top: 'm' }}>デプロイ方法:</Box>

@@ -12,6 +12,9 @@ import Input from '@cloudscape-design/components/input';
 import Textarea from '@cloudscape-design/components/textarea';
 import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
+import Alert from '@cloudscape-design/components/alert';
+import Link from '@cloudscape-design/components/link';
+import Box from '@cloudscape-design/components/box';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
 import { RepositoryConfigSchema, BotConfigSchema, BotDeploymentType } from '@/lib/types';
 import { BooleanToggle } from '@/components/ui/BooleanToggle';
@@ -80,6 +83,21 @@ export function Step1Repository({
         }
       >
         <SpaceBetween size="l">
+          <Alert type="info">
+            <Box variant="h4">準備が必要なツール</Box>
+            <Box>
+              Botを作成・実行するには、以下のツールが必要です。まだインストールしていない場合は、ガイドを参照してインストールしてください。
+            </Box>
+            <SpaceBetween direction="horizontal" size="xs" className="mt-2">
+              <Link href="/help/nodeinstallguide" target="_blank" external>
+                Node.jsのインストール方法
+              </Link>
+              <Link href="/help/gitinstallguide" target="_blank" external>
+                Gitのインストール方法
+              </Link>
+            </SpaceBetween>
+          </Alert>
+
           <Container
             header={
               <Header
