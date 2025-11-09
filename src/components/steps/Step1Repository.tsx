@@ -18,6 +18,7 @@ import Box from '@cloudscape-design/components/box';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
 import { RepositoryConfigSchema, BotConfigSchema, BotDeploymentType } from '@/lib/types';
 import { BooleanToggle } from '@/components/ui/BooleanToggle';
+import { GlossaryTerm } from '@/components/ui/GlossaryTooltip';
 
 const Step1Schema = z.object({
   repository: RepositoryConfigSchema,
@@ -90,10 +91,10 @@ export function Step1Repository({
             </Box>
             <SpaceBetween direction="horizontal" size="xs" className="mt-2">
               <Link href="/help/nodeinstallguide" target="_blank" external>
-                Node.jsのインストール方法
+                <GlossaryTerm termKey="nodejs">Node.js</GlossaryTerm>のインストール方法
               </Link>
               <Link href="/help/gitinstallguide" target="_blank" external>
-                Gitのインストール方法
+                <GlossaryTerm termKey="git">Git</GlossaryTerm>のインストール方法
               </Link>
             </SpaceBetween>
           </Alert>
@@ -102,7 +103,14 @@ export function Step1Repository({
             header={
               <Header
                 variant="h2"
-                description="GitHubリポジトリとDiscord Botの基本情報を設定してください"
+                description={
+                  <>
+                    <GlossaryTerm termKey="github">GitHub</GlossaryTerm>
+                    <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>と
+                    <GlossaryTerm termKey="discordBot">Discord Bot</GlossaryTerm>
+                    の基本情報を設定してください
+                  </>
+                }
               >
                 ステップ 1: リポジトリとBot設定
               </Header>
@@ -111,14 +119,21 @@ export function Step1Repository({
             <SpaceBetween size="l">
               {/* GitHubリポジトリ設定 */}
               <SpaceBetween size="m">
-                <Header variant="h3">GitHubリポジトリ設定</Header>
+                <Header variant="h3">
+                  <GlossaryTerm termKey="github">GitHub</GlossaryTerm>
+                  <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>設定
+                </Header>
 
                 <Controller
                   name="repository.name"
                   control={control}
                   render={({ field }) => (
                     <FormField
-                      label="リポジトリ名"
+                      label={
+                        <>
+                          <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>名
+                        </>
+                      }
                       description="英数字、ハイフン、アンダースコアのみ使用可能"
                       errorText={errors.repository?.name?.message}
                     >
@@ -155,7 +170,11 @@ export function Step1Repository({
                   control={control}
                   render={({ field }) => (
                     <FormField
-                      label="リポジトリの説明"
+                      label={
+                        <>
+                          <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>の説明
+                        </>
+                      }
                       errorText={errors.repository?.description?.message}
                     >
                       <Textarea
@@ -183,7 +202,9 @@ export function Step1Repository({
 
               {/* Bot設定 */}
               <SpaceBetween size="m">
-                <Header variant="h3">Discord Bot設定</Header>
+                <Header variant="h3">
+                  <GlossaryTerm termKey="discordBot">Discord Bot</GlossaryTerm>設定
+                </Header>
 
                 <Controller
                   name="botConfig.name"
@@ -319,14 +340,24 @@ export function Step1Repository({
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <FormField
-                      label="デプロイメントタイプ"
+                      label={
+                        <>
+                          <GlossaryTerm termKey="deploymentType">デプロイメントタイプ</GlossaryTerm>
+                        </>
+                      }
                       errorText={errors.botConfig?.deploymentType?.message}
                     >
                       <div className="space-y-3">
                         {[
                           {
                             value: BotDeploymentType.INTERACTIONS_ENDPOINT,
-                            label: 'Interactions Endpoint (Cloudflare Workers)',
+                            label: (
+                              <>
+                                Interactions Endpoint (
+                                <GlossaryTerm termKey="cloudflareWorkers">Cloudflare Workers</GlossaryTerm>
+                                )
+                              </>
+                            ),
                             description: (
                               <div className="space-y-1.5">
                                 <div className="flex items-center gap-2">
@@ -335,7 +366,10 @@ export function Step1Repository({
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                                  <span>スラッシュコマンド対応</span>
+                                  <span>
+                                    <GlossaryTerm termKey="slashCommand">スラッシュコマンド</GlossaryTerm>
+                                    対応
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <AlertCircle className="w-4 h-4 text-warning flex-shrink-0" />
@@ -343,7 +377,10 @@ export function Step1Repository({
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Package className="w-4 h-4 text-info flex-shrink-0" />
-                                  <span>デプロイ先: Cloudflare Workers</span>
+                                  <span>
+                                    <GlossaryTerm termKey="deploy">デプロイ</GlossaryTerm>先:
+                                    <GlossaryTerm termKey="cloudflareWorkers">Cloudflare Workers</GlossaryTerm>
+                                  </span>
                                 </div>
                               </div>
                             ),
@@ -367,7 +404,10 @@ export function Step1Repository({
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Package className="w-4 h-4 text-info flex-shrink-0" />
-                                  <span>デプロイ先: Railway / Render / VPS</span>
+                                  <span>
+                                    <GlossaryTerm termKey="deploy">デプロイ</GlossaryTerm>先: Railway / Render /
+                                    <GlossaryTerm termKey="vps">VPS</GlossaryTerm>
+                                  </span>
                                 </div>
                               </div>
                             ),

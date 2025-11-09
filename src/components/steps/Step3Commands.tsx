@@ -21,6 +21,7 @@ import type { SlashCommand, ApiProfile, ApiTestResult, FieldMapping, CommandOpti
 import { ResponseType } from '@/lib/types';
 import { ResponseTemplate, generateCustomLogic } from '@/lib/code-generator';
 import { getSelectableFields } from '@/lib/api-response-parser';
+import { GlossaryTerm } from '@/components/ui/GlossaryTooltip';
 
 // コマンドフォーム用スキーマ（条件付きバリデーション）
 const CommandFormSchema = z.object({
@@ -610,7 +611,14 @@ export function Step3Commands({
             name="apiProfileId"
             control={commandControl}
             render={({ field }) => (
-              <FormField label="使用するAPIプロファイル" errorText={commandErrors.apiProfileId?.message}>
+              <FormField
+                label={
+                  <>
+                    使用する<GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>
+                  </>
+                }
+                errorText={commandErrors.apiProfileId?.message}
+              >
                 <Select
                   selectedOption={
                     field.value
@@ -632,7 +640,11 @@ export function Step3Commands({
             control={commandControl}
             render={({ field }) => (
               <FormField
-                label="APIエンドポイント"
+                label={
+                  <>
+                    <GlossaryTerm termKey="apiEndpoint">APIエンドポイント</GlossaryTerm>
+                  </>
+                }
                 description="ベースURLからの相対パス。変数は{変数名}で指定。例: weather?zip={zipcode}"
                 errorText={commandErrors.apiEndpoint?.message}
               >
@@ -821,7 +833,7 @@ return {
                 />
               }
             >
-              ステップ 3: スラッシュコマンド定義
+              ステップ 3: <GlossaryTerm termKey="slashCommand">スラッシュコマンド</GlossaryTerm>定義
             </Header>
           }
         >

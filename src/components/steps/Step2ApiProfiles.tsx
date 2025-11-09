@@ -16,6 +16,7 @@ import Box from '@cloudscape-design/components/box';
 import type { ApiProfile } from '@/lib/types';
 import { AuthType } from '@/lib/types';
 import { generateEnvVarName } from '@/lib/utils';
+import { GlossaryTerm } from '@/components/ui/GlossaryTooltip';
 
 // APIプロファイルのフォーム入力用スキーマ
 const ApiProfileFormSchema = z.object({
@@ -173,9 +174,15 @@ export function Step2ApiProfiles({
           header={
             <Header
               variant="h2"
-              description="外部API連携を使用する場合は、APIプロファイルを追加してください"
+              description={
+                <>
+                  外部<GlossaryTerm termKey="api">API</GlossaryTerm>連携を使用する場合は、
+                  <GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>
+                  を追加してください
+                </>
+              }
             >
-              ステップ 2: APIプロファイル設定
+              ステップ 2: <GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>設定
             </Header>
           }
         >
@@ -189,7 +196,14 @@ export function Step2ApiProfiles({
                       name="name"
                       control={control}
                       render={({ field }) => (
-                        <FormField label="プロファイル名" errorText={errors.name?.message}>
+                        <FormField
+                          label={
+                            <>
+                              <GlossaryTerm termKey="apiProfile">プロファイル</GlossaryTerm>名
+                            </>
+                          }
+                          errorText={errors.name?.message}
+                        >
                           <Input
                             value={field.value}
                             onChange={({ detail }) => field.onChange(detail.value)}
@@ -233,7 +247,14 @@ export function Step2ApiProfiles({
                           name="apiKey"
                           control={control}
                           render={({ field }) => (
-                            <FormField label="APIキー/トークン">
+                            <FormField
+                              label={
+                                <>
+                                  <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/
+                                  <GlossaryTerm termKey="bearerToken">トークン</GlossaryTerm>
+                                </>
+                              }
+                            >
                               <Input
                                 value={field.value || ''}
                                 onChange={({ detail }) => field.onChange(detail.value)}
@@ -282,7 +303,8 @@ export function Step2ApiProfiles({
                         認証: {authTypeOptions.find(o => o.value === profile.authType)?.label}
                       </Box>
                       <Box fontSize="body-s" color="text-status-info">
-                        環境変数: {profile.envVarKey}
+                        <GlossaryTerm termKey="environmentVariable">環境変数</GlossaryTerm>:{' '}
+                        {profile.envVarKey}
                       </Box>
                     </SpaceBetween>
                     <SpaceBetween direction="horizontal" size="xs">
@@ -306,13 +328,22 @@ export function Step2ApiProfiles({
             {isAdding && (
               <Container>
                 <SpaceBetween size="m">
-                  <Header variant="h3">新しいAPIプロファイル</Header>
+                  <Header variant="h3">
+                    新しい<GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>
+                  </Header>
 
                   <Controller
                     name="name"
                     control={control}
                     render={({ field }) => (
-                      <FormField label="プロファイル名" errorText={errors.name?.message}>
+                      <FormField
+                        label={
+                          <>
+                            <GlossaryTerm termKey="apiProfile">プロファイル</GlossaryTerm>名
+                          </>
+                        }
+                        errorText={errors.name?.message}
+                      >
                         <Input
                           value={field.value}
                           onChange={({ detail }) => field.onChange(detail.value)}
@@ -356,7 +387,14 @@ export function Step2ApiProfiles({
                         name="apiKey"
                         control={control}
                         render={({ field }) => (
-                          <FormField label="APIキー/トークン">
+                          <FormField
+                            label={
+                              <>
+                                <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/
+                                <GlossaryTerm termKey="bearerToken">トークン</GlossaryTerm>
+                              </>
+                            }
+                          >
                             <Input
                               value={field.value || ''}
                               onChange={({ detail }) => field.onChange(detail.value)}
@@ -407,7 +445,7 @@ export function Step2ApiProfiles({
                 onClick={() => setIsAdding(true)}
                 fullWidth
               >
-                APIプロファイルを追加
+                <GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>を追加
               </Button>
             )}
           </SpaceBetween>

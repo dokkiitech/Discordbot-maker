@@ -16,6 +16,7 @@ import { IoGameController } from 'react-icons/io5';
 import { MdWavingHand } from 'react-icons/md';
 import { MdStar } from 'react-icons/md';
 import { BOT_TEMPLATES, BotTemplate } from '@/lib/templates';
+import { GlossaryTerm } from '@/components/ui/GlossaryTooltip';
 
 interface Step0TemplateSelectionProps {
   onTemplateSelect: (template: BotTemplate) => void;
@@ -56,9 +57,15 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
       header={
         <Header
           variant="h2"
-          description="ボットテンプレートから始めることで、素早くボットを作成できます。テンプレートをカスタマイズして、あなたのニーズに合わせたボットを作りましょう。"
+          description={
+            <>
+              ボット
+              <GlossaryTerm termKey="template">テンプレート</GlossaryTerm>
+              から始めることで、素早くボットを作成できます。テンプレートをカスタマイズして、あなたのニーズに合わせたボットを作りましょう。
+            </>
+          }
         >
-          テンプレートを選択
+          <GlossaryTerm termKey="template">テンプレート</GlossaryTerm>を選択
         </Header>
       }
     >
@@ -104,10 +111,16 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {template.commands.length > 0 && (
-                        <Badge color="blue">{template.commands.length} コマンド</Badge>
+                        <Badge color="blue">
+                          {template.commands.length}{' '}
+                          <GlossaryTerm termKey="command">コマンド</GlossaryTerm>
+                        </Badge>
                       )}
                       {template.apiProfiles.length > 0 && (
-                        <Badge color="green">{template.apiProfiles.length} API</Badge>
+                        <Badge color="green">
+                          {template.apiProfiles.length}{' '}
+                          <GlossaryTerm termKey="api">API</GlossaryTerm>
+                        </Badge>
                       )}
                     </div>
                   </div>
