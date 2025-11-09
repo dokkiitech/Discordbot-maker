@@ -10,11 +10,11 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Textarea from '@cloudscape-design/components/textarea';
-import Checkbox from '@cloudscape-design/components/checkbox';
 import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
 import type { RepositoryConfig, BotConfig } from '@/lib/types';
 import { RepositoryConfigSchema, BotConfigSchema, BotDeploymentType } from '@/lib/types';
+import { Toggle } from '@/components/ui/Toggle';
 
 const Step1Schema = z.object({
   repository: RepositoryConfigSchema,
@@ -153,14 +153,15 @@ export function Step1Repository({
                 <Controller
                   name="repository.isPrivate"
                   control={control}
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <Checkbox
-                      {...field}
-                      checked={value}
-                      onChange={({ detail }) => onChange(detail.checked)}
-                    >
-                      プライベートリポジトリとして作成
-                    </Checkbox>
+                  render={({ field: { value, onChange } }) => (
+                    <Toggle
+                      options={[
+                        { value: 'false', label: 'パブリック' },
+                        { value: 'true', label: 'プライベート' }
+                      ]}
+                      value={value ? 'true' : 'false'}
+                      onChange={(newValue) => onChange(newValue === 'true')}
+                    />
                   )}
                 />
               </SpaceBetween>
