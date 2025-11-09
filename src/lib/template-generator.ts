@@ -260,9 +260,14 @@ export interface Env {
   REGISTER_SECRET: string;
 ${apiProfiles
   .map(
-    (p) => `  ${p.envVarKey}: string;
-  ${p.envVarUrl}: string;`
+    (p) => {
+      const parts = [];
+      if (p.envVarKey) parts.push(`  ${p.envVarKey}: string;`);
+      if (p.envVarUrl) parts.push(`  ${p.envVarUrl}: string;`);
+      return parts.join('\n');
+    }
   )
+  .filter(s => s)
   .join('\n')}
 }
 
@@ -374,11 +379,53 @@ function generateCommandHandler(
   const functionName = `handle${capitalize(command.name)}`;
 
   if (command.responseType === ResponseType.STATIC_TEXT) {
+    // オプション値の取得ロジック
+    const optionGetters = command.options && command.options.length > 0
+      ? command.options.map(opt => {
+          return `  const ${opt.name} = interaction.data.options?.find((o: any) => o.name === '${opt.name}')?.value;`;
+        }).join('\n')
+      : '';
+
+    // テンプレート文字列の処理
+    let contentExpression = `\`${command.staticText || 'Hello from ' + command.name}\``;
+
+    // {optionName} を ${optionName} に置換
+    if (command.options && command.options.length > 0) {
+      command.options.forEach(opt => {
+        const regex = new RegExp(`\\{${opt.name}\\}`, 'g');
+        contentExpression = contentExpression.replace(regex, `\${${opt.name}}`);
+      });
+    }
+
+    // {random(...)} パターンを処理
+    // 例: {random(1, 6)} → ランダム関数呼び出し
+    // 例: {random("表", "裏")} → 配列からランダム選択
+    contentExpression = contentExpression.replace(
+      /\{random\((.*?)\)\}/g,
+      (match, args) => {
+        // 数値範囲の場合: random(1, 6) → Math.floor(Math.random() * (6 - 1 + 1)) + 1
+        if (/^\d+\s*,\s*\d+$/.test(args.trim())) {
+          const parts = args.split(',').map((s: string) => s.trim());
+          if (parts.length === 2) {
+            const min = parts[0];
+            const max = parts[1];
+            return `\${Math.floor(Math.random() * (${max} - ${min} + 1)) + ${min}}`;
+          }
+        }
+        // 文字列配列の場合: random("表", "裏") → ['表', '裏'][Math.floor(Math.random() * 2)]
+        const items = args.split(',').map((s: string) => s.trim());
+        return `\${[${items.join(', ')}][Math.floor(Math.random() * ${items.length})]}`;
+      }
+    );
+
     return `async function ${functionName}(interaction: any, env: Env): Promise<Response> {
+${optionGetters}
+  const content = ${contentExpression};
+
   return Response.json({
     type: 4,
     data: {
-      content: '${command.staticText || 'Hello from ' + command.name}',
+      content,
     },
   });
 }`;
@@ -407,11 +454,46 @@ function generateCommandHandler(
     urlParams = `url.searchParams.set('${profile.apiKeyName}', env.${profile.envVarKey});`;
   }
 
-  const customLogic = command.codeSnippet || `
-    const data = await apiResponse.json();
+  // カスタムロジックまたはフィールドマッピングに基づく整形出力を生成
+  let customLogic: string;
+
+  if (command.codeSnippet) {
+    // ユーザー定義のカスタムロジック
+    customLogic = command.codeSnippet;
+  } else if (command.fieldMappings && command.fieldMappings.length > 0) {
+    // フィールドマッピングに基づく整形出力
+    const mappingLogic = command.fieldMappings.map(mapping => {
+      const fieldAccessor = `data.${mapping.fieldPath}`;
+      let formatStr = mapping.formatString || `{${mapping.fieldPath}}`;
+
+      // formatString内の{fieldPath}を実際の値で置換
+      const fieldPattern = new RegExp(`\\{${mapping.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+      formatStr = formatStr.replace(fieldPattern, `\${${fieldAccessor}}`);
+
+      // 他のフィールド参照も置換（ネストされたフィールド対応）
+      command.fieldMappings?.forEach(m => {
+        const pattern = new RegExp(`\\{${m.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+        formatStr = formatStr.replace(pattern, `\${data.${m.fieldPath}}`);
+      });
+
+      return `    if (${fieldAccessor} !== null && ${fieldAccessor} !== undefined) parts.push(\`${formatStr}\`);`;
+    }).join('\n');
+
+    customLogic = `
+    const data = await apiResponse.json() as any;
+    const parts: string[] = [];
+${mappingLogic}
+    return {
+      content: parts.join('\\n'),
+    };`;
+  } else {
+    // デフォルト: 生のJSON出力
+    customLogic = `
+    const data = await apiResponse.json() as any;
     return {
       content: JSON.stringify(data, null, 2),
     };`;
+  }
 
   // エンドポイント内の変数を置換するロジックを生成（Cloudflare Workers版）
   const endpointVariableReplacementCF = command.options && command.options.length > 0
@@ -498,6 +580,7 @@ function generatePackageJson(botConfig: BotConfig): string {
       description: botConfig.description || 'Discord Bot powered by Cloudflare Workers',
       main: 'src/index.ts',
       scripts: {
+        build: 'tsc --noEmit',
         dev: 'wrangler dev',
         deploy: 'wrangler deploy',
       },
@@ -797,8 +880,53 @@ function generateGatewayCommandHandler(
   const functionName = `handle${capitalize(command.name)}`;
 
   if (command.responseType === ResponseType.STATIC_TEXT) {
+    // オプション値の取得ロジック
+    const optionGetters = command.options && command.options.length > 0
+      ? command.options.map(opt => {
+          const getterMethod = opt.type === 'integer' ? 'getInteger' :
+                             opt.type === 'boolean' ? 'getBoolean' :
+                             opt.type === 'user' ? 'getUser' :
+                             opt.type === 'channel' ? 'getChannel' :
+                             opt.type === 'role' ? 'getRole' : 'getString';
+          return `  const ${opt.name} = interaction.options.${getterMethod}('${opt.name}')${opt.required ? '' : ' || null'};`;
+        }).join('\n')
+      : '';
+
+    // テンプレート文字列の処理
+    let contentExpression = `\`${command.staticText || 'Hello from ' + command.name}\``;
+
+    // {optionName} を ${optionName} に置換
+    if (command.options && command.options.length > 0) {
+      command.options.forEach(opt => {
+        const regex = new RegExp(`\\{${opt.name}\\}`, 'g');
+        contentExpression = contentExpression.replace(regex, `\${${opt.name}}`);
+      });
+    }
+
+    // {random(...)} パターンを処理
+    contentExpression = contentExpression.replace(
+      /\{random\((.*?)\)\}/g,
+      (match, args) => {
+        // 数値範囲の場合
+        if (/^\d+\s*,\s*\d+$/.test(args.trim())) {
+          const parts = args.split(',').map((s: string) => s.trim());
+          if (parts.length === 2) {
+            const min = parts[0];
+            const max = parts[1];
+            return `\${Math.floor(Math.random() * (${max} - ${min} + 1)) + ${min}}`;
+          }
+        }
+        // 文字列配列の場合
+        const items = args.split(',').map((s: string) => s.trim());
+        return `\${[${items.join(', ')}][Math.floor(Math.random() * ${items.length})]}`;
+      }
+    );
+
     return `async function ${functionName}(interaction: ChatInputCommandInteraction) {
-  await interaction.reply('${command.staticText || 'Hello from ' + command.name}');
+${optionGetters}
+  const content = ${contentExpression};
+
+  await interaction.reply(content);
 }`;
   }
 
@@ -822,9 +950,42 @@ function generateGatewayCommandHandler(
     urlParams = `url.searchParams.set('${profile.apiKeyName}', process.env.${profile.envVarKey}!);`;
   }
 
-  const customLogic = command.codeSnippet || `
-    const data = await apiResponse.json();
+  // カスタムロジックまたはフィールドマッピングに基づく整形出力を生成
+  let customLogic: string;
+
+  if (command.codeSnippet) {
+    // ユーザー定義のカスタムロジック
+    customLogic = command.codeSnippet;
+  } else if (command.fieldMappings && command.fieldMappings.length > 0) {
+    // フィールドマッピングに基づく整形出力
+    const mappingLogic = command.fieldMappings.map(mapping => {
+      const fieldAccessor = `data.${mapping.fieldPath}`;
+      let formatStr = mapping.formatString || `{${mapping.fieldPath}}`;
+
+      // formatString内の{fieldPath}を実際の値で置換
+      const fieldPattern = new RegExp(`\\{${mapping.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+      formatStr = formatStr.replace(fieldPattern, `\${${fieldAccessor}}`);
+
+      // 他のフィールド参照も置換（ネストされたフィールド対応）
+      command.fieldMappings?.forEach(m => {
+        const pattern = new RegExp(`\\{${m.fieldPath.replace(/\./g, '\\.')}\\}`, 'g');
+        formatStr = formatStr.replace(pattern, `\${data.${m.fieldPath}}`);
+      });
+
+      return `    if (${fieldAccessor} !== null && ${fieldAccessor} !== undefined) parts.push(\`${formatStr}\`);`;
+    }).join('\n');
+
+    customLogic = `
+    const data = await apiResponse.json() as any;
+    const parts: string[] = [];
+${mappingLogic}
+    return parts.join('\\n');`;
+  } else {
+    // デフォルト: 生のJSON出力
+    customLogic = `
+    const data = await apiResponse.json() as any;
     return JSON.stringify(data, null, 2);`;
+  }
 
   // エンドポイント内の変数を置換するロジックを生成
   const endpointVariableReplacement = command.options && command.options.length > 0
