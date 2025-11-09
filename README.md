@@ -732,7 +732,6 @@ types:
 
 - **バグ報告**: [Issues](https://github.com/dokkiitech/Discordbot-maker/issues)
 - **機能提案**: [Discussions](https://github.com/dokkiitech/Discordbot-maker/discussions)
-- **セキュリティ報告**: security@dokkiitech.com（非公開）
 
 ---
 
@@ -806,7 +805,6 @@ in the Software without restriction...
 
 - **GitHub Issues**: [新しいIssueを作成](https://github.com/dokkiitech/Discordbot-maker/issues/new)
 - **Discussions**: [ディスカッションに参加](https://github.com/dokkiitech/Discordbot-maker/discussions)
-- **Email**: support@dokkiitech.com
 
 ---
 
