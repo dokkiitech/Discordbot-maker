@@ -381,24 +381,6 @@ export const BOT_TEMPLATES: BotTemplate[] = [
     difficulty: 'beginner',
     setupInstructions: 'API不要！Discord Botの基本を学べる最もシンプルなテンプレートです。',
   },
-
-  // 7. 空のテンプレート（カスタム用）
-  {
-    id: 'blank',
-    name: '📝 空のテンプレート',
-    description: 'ゼロから自分でボットを作成します。完全にカスタマイズ可能です。',
-    category: 'custom',
-    icon: '📝',
-    defaultBotConfig: {
-      deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
-      description: '',
-    },
-    apiProfiles: [],
-    commands: [],
-    tags: ['カスタム', '空', '自由'],
-    difficulty: 'beginner',
-    setupInstructions: '自由にコマンドとAPIを追加してください。',
-  },
 ];
 
 /**
