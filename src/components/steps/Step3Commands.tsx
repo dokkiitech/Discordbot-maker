@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, Suspense, lazy } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Container from '@cloudscape-design/components/container';
 import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
@@ -14,10 +17,67 @@ import Box from '@cloudscape-design/components/box';
 import Alert from '@cloudscape-design/components/alert';
 import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import Modal from '@cloudscape-design/components/modal';
-import type { SlashCommand, ApiProfile, ApiTestResult, FieldMapping } from '@/lib/types';
+import type { SlashCommand, ApiProfile, ApiTestResult, FieldMapping, CommandOption } from '@/lib/types';
 import { ResponseType } from '@/lib/types';
 import { ResponseTemplate, generateCustomLogic } from '@/lib/code-generator';
 import { getSelectableFields } from '@/lib/api-response-parser';
+
+// コマンドフォーム用スキーマ（条件付きバリデーション）
+const CommandFormSchema = z.object({
+  name: z.string()
+    .min(1, '⚠️ これは必須の項目です')
+    .regex(/^[a-z0-9_-]+$/, 'コマンド名は小文字、数字、ハイフン、アンダースコアのみ使用できます'),
+  description: z.string()
+    .min(1, '⚠️ これは必須の項目です')
+    .max(100, '説明は100文字以内にしてください'),
+  responseType: z.nativeEnum(ResponseType),
+  staticText: z.string().optional(),
+  apiProfileId: z.string().optional(),
+  apiEndpoint: z.string().optional(),
+  codeSnippet: z.string().optional(),
+  options: z.array(z.custom<CommandOption>()).optional(),
+}).superRefine((data, ctx) => {
+  // STATIC_TEXTの場合、staticTextが必須
+  if (data.responseType === ResponseType.STATIC_TEXT) {
+    if (!data.staticText || data.staticText.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '応答テキストを入力してください',
+        path: ['staticText'],
+      });
+    }
+  }
+
+  // API_CALLの場合、apiProfileIdとapiEndpointが必須
+  if (data.responseType === ResponseType.API_CALL) {
+    if (!data.apiProfileId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'APIプロファイルを選択してください',
+        path: ['apiProfileId'],
+      });
+    }
+    if (!data.apiEndpoint || data.apiEndpoint.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'APIエンドポイントを入力してください',
+        path: ['apiEndpoint'],
+      });
+    }
+  }
+});
+
+type CommandFormData = z.infer<typeof CommandFormSchema>;
+
+// コマンドオプションフォーム用スキーマ
+const CommandOptionFormSchema = z.object({
+  name: z.string().min(1, '⚠️ これは必須の項目です'),
+  description: z.string().min(1, '⚠️ これは必須の項目です'),
+  type: z.enum(['string', 'integer', 'boolean', 'user', 'channel', 'role']),
+  required: z.boolean(),
+});
+
+type CommandOptionFormData = z.infer<typeof CommandOptionFormSchema>;
 
 // ReactFlowEditorを動的にインポート（クライアントサイドのみ）
 const ReactFlowEditor = lazy(() => import('@/components/reactflow/ReactFlowEditor').then(mod => ({ default: mod.ReactFlowEditor })));
@@ -40,15 +100,47 @@ export function Step3Commands({
   const [editorMode, setEditorMode] = useState<'form' | 'visual'>('form');
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<SlashCommand>>({
-    name: '',
-    description: '',
-    responseType: ResponseType.STATIC_TEXT,
-    staticText: '',
-    apiProfileId: '',
-    apiEndpoint: '',
-    codeSnippet: '',
-    options: [],
+
+  // コマンドフォーム用のreact-hook-form
+  const {
+    handleSubmit: handleCommandSubmit,
+    control: commandControl,
+    reset: resetCommand,
+    formState: { errors: commandErrors },
+    watch: watchCommand,
+    setValue: setCommandValue,
+    getValues: getCommandValues,
+  } = useForm<CommandFormData>({
+    resolver: zodResolver(CommandFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      responseType: ResponseType.STATIC_TEXT,
+      staticText: '',
+      apiProfileId: '',
+      apiEndpoint: '',
+      codeSnippet: '',
+      options: [],
+    },
+  });
+
+  const responseType = watchCommand('responseType');
+  const currentOptions = watchCommand('options');
+
+  // コマンドオプションフォーム用のreact-hook-form
+  const {
+    handleSubmit: handleOptionSubmit,
+    control: optionControl,
+    reset: resetOption,
+    formState: { errors: optionErrors },
+  } = useForm<CommandOptionFormData>({
+    resolver: zodResolver(CommandOptionFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      type: 'string',
+      required: false,
+    },
   });
 
   // APIテスト用のstate
@@ -61,45 +153,46 @@ export function Step3Commands({
   // コマンドオプション編集用の状態
   const [isAddingOption, setIsAddingOption] = useState(false);
   const [editingOptionIndex, setEditingOptionIndex] = useState<number | null>(null);
-  const [optionFormData, setOptionFormData] = useState<{
-    name: string;
-    description: string;
-    type: 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role';
-    required: boolean;
-  }>({
-    name: '',
-    description: '',
-    type: 'string',
-    required: false,
-  });
 
-  const handleAdd = () => {
+  const onSubmitAdd = (data: CommandFormData) => {
     const newCommand: SlashCommand = {
       id: Date.now().toString(),
-      name: formData.name!,
-      description: formData.description!,
-      responseType: formData.responseType!,
-      staticText: formData.staticText,
-      apiProfileId: formData.apiProfileId,
-      apiEndpoint: formData.apiEndpoint,
-      codeSnippet: formData.codeSnippet,
-      options: formData.options || [],
+      name: data.name,
+      description: data.description,
+      responseType: data.responseType,
+      staticText: data.staticText,
+      apiProfileId: data.apiProfileId,
+      apiEndpoint: data.apiEndpoint,
+      codeSnippet: data.codeSnippet,
+      options: data.options || [],
       autoGeneratedCode: false,
     };
 
     onChange([...commands, newCommand]);
     setIsAdding(false);
-    resetForm();
+    resetCommand();
   };
 
-  const handleUpdate = (id: string) => {
+  const onSubmitUpdate = (id: string) => (data: CommandFormData) => {
     onChange(
       commands.map((cmd) =>
-        cmd.id === id ? { ...cmd, ...formData } : cmd
+        cmd.id === id
+          ? {
+              ...cmd,
+              name: data.name,
+              description: data.description,
+              responseType: data.responseType,
+              staticText: data.staticText,
+              apiProfileId: data.apiProfileId,
+              apiEndpoint: data.apiEndpoint,
+              codeSnippet: data.codeSnippet,
+              options: data.options || [],
+            }
+          : cmd
       )
     );
     setEditingId(null);
-    resetForm();
+    resetCommand();
   };
 
   const handleDelete = (id: string) => {
@@ -108,91 +201,113 @@ export function Step3Commands({
 
   const startEdit = (command: SlashCommand) => {
     setEditingId(command.id);
-    setFormData(command);
+    resetCommand({
+      name: command.name,
+      description: command.description,
+      responseType: command.responseType,
+      staticText: command.staticText,
+      apiProfileId: command.apiProfileId,
+      apiEndpoint: command.apiEndpoint,
+      codeSnippet: command.codeSnippet,
+      options: command.options || [],
+    });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setIsAdding(false);
-    resetForm();
+    resetCommand();
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      responseType: ResponseType.STATIC_TEXT,
-      staticText: '',
-      apiProfileId: '',
-      apiEndpoint: '',
-      codeSnippet: '',
-      options: [],
-    });
-  };
+  const handleCommandFormSubmitWithScroll = handleCommandSubmit(
+    (data) => {
+      if (editingId) {
+        onSubmitUpdate(editingId)(data);
+      } else {
+        onSubmitAdd(data);
+      }
+    },
+    () => {
+      // エラーがある場合、フォームにスクロール
+      setTimeout(() => {
+        const formElement = document.querySelector('form');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
+  );
 
   // コマンドオプション関連の関数
-  const handleAddOption = () => {
-    const currentOptions = formData.options || [];
-    setFormData({
-      ...formData,
-      options: [...currentOptions, optionFormData],
-    });
+  const onSubmitAddOption = (data: CommandOptionFormData) => {
+    const opts = currentOptions || [];
+    setCommandValue('options', [...opts, data]);
     setIsAddingOption(false);
-    resetOptionForm();
+    resetOption();
   };
 
-  const handleUpdateOption = (index: number) => {
-    const currentOptions = formData.options || [];
-    const updatedOptions = currentOptions.map((opt, i) =>
-      i === index ? optionFormData : opt
+  const onSubmitUpdateOption = (index: number) => (data: CommandOptionFormData) => {
+    const opts = currentOptions || [];
+    const updatedOptions = opts.map((opt, i) =>
+      i === index ? data : opt
     );
-    setFormData({
-      ...formData,
-      options: updatedOptions,
-    });
+    setCommandValue('options', updatedOptions);
     setEditingOptionIndex(null);
-    resetOptionForm();
+    resetOption();
   };
 
   const handleDeleteOption = (index: number) => {
-    const currentOptions = formData.options || [];
-    setFormData({
-      ...formData,
-      options: currentOptions.filter((_, i) => i !== index),
-    });
+    const opts = currentOptions || [];
+    setCommandValue('options', opts.filter((_, i) => i !== index));
   };
 
   const startEditOption = (index: number) => {
-    const option = formData.options?.[index];
+    const option = currentOptions?.[index];
     if (option) {
       setEditingOptionIndex(index);
-      setOptionFormData(option);
+      resetOption({
+        name: option.name,
+        description: option.description,
+        type: option.type,
+        required: option.required,
+      });
     }
   };
 
   const cancelEditOption = () => {
     setEditingOptionIndex(null);
     setIsAddingOption(false);
-    resetOptionForm();
+    resetOption();
   };
 
-  const resetOptionForm = () => {
-    setOptionFormData({
-      name: '',
-      description: '',
-      type: 'string',
-      required: false,
-    });
-  };
+  const handleOptionFormSubmitWithScroll = handleOptionSubmit(
+    (data) => {
+      if (editingOptionIndex !== null) {
+        onSubmitUpdateOption(editingOptionIndex)(data);
+      } else {
+        onSubmitAddOption(data);
+      }
+    },
+    () => {
+      // エラーがある場合、フォームにスクロール
+      setTimeout(() => {
+        const formElement = document.querySelector('form');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
+  );
 
   // APIテストハンドラー
   const handleTestApi = async () => {
-    if (!formData.apiProfileId || !formData.apiEndpoint) {
+    const formValues = getCommandValues();
+    if (!formValues.apiProfileId || !formValues.apiEndpoint) {
       alert('APIプロファイルとエンドポイントを入力してください');
       return;
     }
 
-    const selectedProfile = apiProfiles.find(p => p.id === formData.apiProfileId);
+    const selectedProfile = apiProfiles.find(p => p.id === formValues.apiProfileId);
     if (!selectedProfile) {
       alert('選択されたAPIプロファイルが見つかりません');
       return;
@@ -209,7 +324,7 @@ export function Step3Commands({
         },
         body: JSON.stringify({
           apiProfile: selectedProfile,
-          endpoint: formData.apiEndpoint,
+          endpoint: formValues.apiEndpoint,
           testParams: {},
         }),
       });
@@ -246,7 +361,7 @@ export function Step3Commands({
     }
 
     const generatedCode = generateCustomLogic(selectedFields, selectedTemplate);
-    setFormData({ ...formData, codeSnippet: generatedCode });
+    setCommandValue('codeSnippet', generatedCode);
     setShowFieldSelector(false);
   };
 
@@ -282,53 +397,75 @@ export function Step3Commands({
 
   const renderOptionForm = (isEdit: boolean, optionIndex?: number) => (
     <SpaceBetween size="m">
-      <FormField
-        label="オプション名"
-        description="小文字、数字、ハイフン、アンダースコアのみ"
-      >
-        <Input
-          value={optionFormData.name || ''}
-          onChange={({ detail }) => setOptionFormData({ ...optionFormData, name: detail.value })}
-          placeholder="zipcode"
-        />
-      </FormField>
+      <Controller
+        name="name"
+        control={optionControl}
+        render={({ field }) => (
+          <FormField
+            label="オプション名"
+            description="小文字、数字、ハイフン、アンダースコアのみ"
+            errorText={optionErrors.name?.message}
+          >
+            <Input
+              value={field.value}
+              onChange={({ detail }) => field.onChange(detail.value)}
+              placeholder="zipcode"
+            />
+          </FormField>
+        )}
+      />
 
-      <FormField label="説明">
-        <Input
-          value={optionFormData.description || ''}
-          onChange={({ detail }) => setOptionFormData({ ...optionFormData, description: detail.value })}
-          placeholder="郵便番号を入力してください"
-        />
-      </FormField>
+      <Controller
+        name="description"
+        control={optionControl}
+        render={({ field }) => (
+          <FormField label="説明" errorText={optionErrors.description?.message}>
+            <Input
+              value={field.value}
+              onChange={({ detail }) => field.onChange(detail.value)}
+              placeholder="郵便番号を入力してください"
+            />
+          </FormField>
+        )}
+      />
 
-      <FormField label="型">
-        <Select
-          selectedOption={optionTypeOptions.find(o => o.value === optionFormData.type) || optionTypeOptions[0]}
-          onChange={({ detail }) => setOptionFormData({ ...optionFormData, type: detail.selectedOption.value as 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role' })}
-          options={optionTypeOptions}
-        />
-      </FormField>
+      <Controller
+        name="type"
+        control={optionControl}
+        render={({ field }) => (
+          <FormField label="型">
+            <Select
+              selectedOption={optionTypeOptions.find(o => o.value === field.value) || optionTypeOptions[0]}
+              onChange={({ detail }) => field.onChange(detail.selectedOption.value as 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role')}
+              options={optionTypeOptions}
+            />
+          </FormField>
+        )}
+      />
 
-      <FormField label="必須">
-        <Select
-          selectedOption={
-            optionFormData.required
-              ? { value: 'true', label: '必須' }
-              : { value: 'false', label: '任意' }
-          }
-          onChange={({ detail }) => setOptionFormData({ ...optionFormData, required: detail.selectedOption.value === 'true' })}
-          options={[
-            { value: 'true', label: '必須' },
-            { value: 'false', label: '任意' },
-          ]}
-        />
-      </FormField>
+      <Controller
+        name="required"
+        control={optionControl}
+        render={({ field }) => (
+          <FormField label="必須">
+            <Select
+              selectedOption={
+                field.value
+                  ? { value: 'true', label: '必須' }
+                  : { value: 'false', label: '任意' }
+              }
+              onChange={({ detail }) => field.onChange(detail.selectedOption.value === 'true')}
+              options={[
+                { value: 'true', label: '必須' },
+                { value: 'false', label: '任意' },
+              ]}
+            />
+          </FormField>
+        )}
+      />
 
       <SpaceBetween direction="horizontal" size="xs">
-        <Button
-          onClick={() => (isEdit && optionIndex !== undefined ? handleUpdateOption(optionIndex) : handleAddOption())}
-          disabled={!optionFormData.name || !optionFormData.description}
-        >
+        <Button onClick={() => handleOptionFormSubmitWithScroll()}>
           {isEdit ? '保存' : '追加'}
         </Button>
         <Button variant="link" onClick={cancelEditOption}>
@@ -340,24 +477,37 @@ export function Step3Commands({
 
   const renderCommandForm = (isEdit: boolean, commandId?: string) => (
     <SpaceBetween size="m">
-      <FormField
-        label="コマンド名"
-        description="小文字、数字、ハイフン、アンダースコアのみ"
-      >
-        <Input
-          value={formData.name || ''}
-          onChange={({ detail }) => setFormData({ ...formData, name: detail.value })}
-          placeholder="weather"
-        />
-      </FormField>
+      <Controller
+        name="name"
+        control={commandControl}
+        render={({ field }) => (
+          <FormField
+            label="コマンド名"
+            description="小文字、数字、ハイフン、アンダースコアのみ"
+            errorText={commandErrors.name?.message}
+          >
+            <Input
+              value={field.value}
+              onChange={({ detail }) => field.onChange(detail.value)}
+              placeholder="weather"
+            />
+          </FormField>
+        )}
+      />
 
-      <FormField label="説明">
-        <Input
-          value={formData.description || ''}
-          onChange={({ detail }) => setFormData({ ...formData, description: detail.value })}
-          placeholder="天気情報を取得します"
-        />
-      </FormField>
+      <Controller
+        name="description"
+        control={commandControl}
+        render={({ field }) => (
+          <FormField label="説明" errorText={commandErrors.description?.message}>
+            <Input
+              value={field.value}
+              onChange={({ detail }) => field.onChange(detail.value)}
+              placeholder="天気情報を取得します"
+            />
+          </FormField>
+        )}
+      />
 
       {/* コマンドオプション一覧 */}
       <FormField
@@ -366,9 +516,9 @@ export function Step3Commands({
       >
         <SpaceBetween size="s">
           {/* 既存のオプション一覧 */}
-          {formData.options && formData.options.length > 0 && (
+          {currentOptions && currentOptions.length > 0 && (
             <SpaceBetween size="xs">
-              {formData.options.map((option, index) => (
+              {currentOptions.map((option, index) => (
                 <Container key={index}>
                   {editingOptionIndex === index ? (
                     renderOptionForm(true, index)
@@ -423,59 +573,84 @@ export function Step3Commands({
         </SpaceBetween>
       </FormField>
 
-      <FormField label="応答タイプ">
-        <Select
-          selectedOption={responseTypeOptions.find(o => o.value === formData.responseType) || responseTypeOptions[0]}
-          onChange={({ detail }) => setFormData({ ...formData, responseType: detail.selectedOption.value as ResponseType })}
-          options={responseTypeOptions}
-        />
-      </FormField>
+      <Controller
+        name="responseType"
+        control={commandControl}
+        render={({ field }) => (
+          <FormField label="応答タイプ">
+            <Select
+              selectedOption={responseTypeOptions.find(o => o.value === field.value) || responseTypeOptions[0]}
+              onChange={({ detail }) => field.onChange(detail.selectedOption.value as ResponseType)}
+              options={responseTypeOptions}
+            />
+          </FormField>
+        )}
+      />
 
-      {formData.responseType === ResponseType.STATIC_TEXT && (
-        <FormField label="応答テキスト">
-          <Textarea
-            value={formData.staticText || ''}
-            onChange={({ detail }) => setFormData({ ...formData, staticText: detail.value })}
-            placeholder="こんにちは！これは静的な応答です。"
-            rows={3}
-          />
-        </FormField>
+      {responseType === ResponseType.STATIC_TEXT && (
+        <Controller
+          name="staticText"
+          control={commandControl}
+          render={({ field }) => (
+            <FormField label="応答テキスト" errorText={commandErrors.staticText?.message}>
+              <Textarea
+                value={field.value || ''}
+                onChange={({ detail }) => field.onChange(detail.value)}
+                placeholder="こんにちは！これは静的な応答です。"
+                rows={3}
+              />
+            </FormField>
+          )}
+        />
       )}
 
-      {formData.responseType === ResponseType.API_CALL && (
+      {responseType === ResponseType.API_CALL && (
         <>
-          <FormField label="使用するAPIプロファイル">
-            <Select
-              selectedOption={
-                formData.apiProfileId
-                  ? { value: formData.apiProfileId, label: apiProfiles.find(p => p.id === formData.apiProfileId)?.name || '' }
-                  : { value: '', label: 'APIプロファイルを選択' }
-              }
-              onChange={({ detail }) => setFormData({ ...formData, apiProfileId: detail.selectedOption.value! })}
-              options={[
-                { value: '', label: 'APIプロファイルを選択' },
-                ...apiProfiles.map((p) => ({ value: p.id, label: p.name })),
-              ]}
-            />
-          </FormField>
+          <Controller
+            name="apiProfileId"
+            control={commandControl}
+            render={({ field }) => (
+              <FormField label="使用するAPIプロファイル" errorText={commandErrors.apiProfileId?.message}>
+                <Select
+                  selectedOption={
+                    field.value
+                      ? { value: field.value, label: apiProfiles.find(p => p.id === field.value)?.name || '' }
+                      : { value: '', label: 'APIプロファイルを選択' }
+                  }
+                  onChange={({ detail }) => field.onChange(detail.selectedOption.value)}
+                  options={[
+                    { value: '', label: 'APIプロファイルを選択' },
+                    ...apiProfiles.map((p) => ({ value: p.id, label: p.name })),
+                  ]}
+                />
+              </FormField>
+            )}
+          />
 
-          <FormField
-            label="APIエンドポイント"
-            description="ベースURLからの相対パス。変数は{変数名}で指定。例: weather?zip={zipcode}"
-          >
-            <Input
-              value={formData.apiEndpoint || ''}
-              onChange={({ detail }) => setFormData({ ...formData, apiEndpoint: detail.value })}
-              placeholder="weather?zip={zipcode}"
-            />
-          </FormField>
+          <Controller
+            name="apiEndpoint"
+            control={commandControl}
+            render={({ field }) => (
+              <FormField
+                label="APIエンドポイント"
+                description="ベースURLからの相対パス。変数は{変数名}で指定。例: weather?zip={zipcode}"
+                errorText={commandErrors.apiEndpoint?.message}
+              >
+                <Input
+                  value={field.value || ''}
+                  onChange={({ detail }) => field.onChange(detail.value)}
+                  placeholder="weather?zip={zipcode}"
+                />
+              </FormField>
+            )}
+          />
 
           {/* APIテストボタン */}
           <FormField>
             <SpaceBetween direction="horizontal" size="xs">
               <Button
                 onClick={handleTestApi}
-                disabled={isTesting || !formData.apiProfileId || !formData.apiEndpoint}
+                disabled={isTesting || !getCommandValues().apiProfileId || !getCommandValues().apiEndpoint}
                 loading={isTesting}
               >
                 {isTesting ? 'テスト中...' : 'APIをテスト'}
@@ -510,22 +685,28 @@ export function Step3Commands({
             </Alert>
           )}
 
-          <FormField
-            label="カスタムロジック（オプション）"
-            description="JavaScriptコード。apiResponseオブジェクトとinteraction.options（コマンドオプションの値）が利用可能"
-          >
-            <Textarea
-              value={formData.codeSnippet || ''}
-              onChange={({ detail }) => setFormData({ ...formData, codeSnippet: detail.value })}
-              placeholder={`// API応答を処理してDiscord応答を返す
+          <Controller
+            name="codeSnippet"
+            control={commandControl}
+            render={({ field }) => (
+              <FormField
+                label="カスタムロジック（オプション）"
+                description="JavaScriptコード。apiResponseオブジェクトとinteraction.options（コマンドオプションの値）が利用可能"
+              >
+                <Textarea
+                  value={field.value || ''}
+                  onChange={({ detail }) => field.onChange(detail.value)}
+                  placeholder={`// API応答を処理してDiscord応答を返す
 // コマンドオプションの値: interaction.options.getString('zipcode')
 const data = await apiResponse.json();
 return {
   content: \`現在の気温: \${data.main.temp}°C\`
 };`}
-              rows={8}
-            />
-          </FormField>
+                  rows={8}
+                />
+              </FormField>
+            )}
+          />
         </>
       )}
 
@@ -600,10 +781,7 @@ return {
       </Modal>
 
       <SpaceBetween direction="horizontal" size="xs">
-        <Button
-          onClick={() => (isEdit && commandId ? handleUpdate(commandId) : handleAdd())}
-          disabled={!formData.name || !formData.description}
-        >
+        <Button onClick={() => handleCommandFormSubmitWithScroll()}>
           {isEdit ? '保存' : '追加'}
         </Button>
         <Button variant="link" onClick={cancelEdit}>
