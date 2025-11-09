@@ -105,8 +105,7 @@ export function Step1Repository({
                 variant="h2"
                 description={
                   <>
-                    <GlossaryTerm termKey="github">GitHub</GlossaryTerm>
-                    <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>と
+                    <GlossaryTerm termKey="github">GitHub</GlossaryTerm>リポジトリと
                     <GlossaryTerm termKey="discordBot">Discord Bot</GlossaryTerm>
                     の基本情報を設定してください
                   </>
@@ -120,8 +119,7 @@ export function Step1Repository({
               {/* GitHubリポジトリ設定 */}
               <SpaceBetween size="m">
                 <Header variant="h3">
-                  <GlossaryTerm termKey="github">GitHub</GlossaryTerm>
-                  <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>設定
+                  <GlossaryTerm termKey="github">GitHub</GlossaryTerm>リポジトリ設定
                 </Header>
 
                 <Controller
@@ -129,11 +127,7 @@ export function Step1Repository({
                   control={control}
                   render={({ field }) => (
                     <FormField
-                      label={
-                        <>
-                          <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>名
-                        </>
-                      }
+                      label="リポジトリ名"
                       description="英数字、ハイフン、アンダースコアのみ使用可能"
                       errorText={errors.repository?.name?.message}
                     >
@@ -170,11 +164,7 @@ export function Step1Repository({
                   control={control}
                   render={({ field }) => (
                     <FormField
-                      label={
-                        <>
-                          <GlossaryTerm termKey="repository">リポジトリ</GlossaryTerm>の説明
-                        </>
-                      }
+                      label="リポジトリの説明"
                       errorText={errors.repository?.description?.message}
                     >
                       <Textarea
@@ -202,9 +192,7 @@ export function Step1Repository({
 
               {/* Bot設定 */}
               <SpaceBetween size="m">
-                <Header variant="h3">
-                  <GlossaryTerm termKey="discordBot">Discord Bot</GlossaryTerm>設定
-                </Header>
+                <Header variant="h3">Discord Bot設定</Header>
 
                 <Controller
                   name="botConfig.name"
@@ -342,7 +330,7 @@ export function Step1Repository({
                     <FormField
                       label={
                         <>
-                          <GlossaryTerm termKey="deploymentType">デプロイメントタイプ</GlossaryTerm>
+                          <GlossaryTerm termKey="deploymentType">デプロイメント</GlossaryTerm>タイプ
                         </>
                       }
                       errorText={errors.botConfig?.deploymentType?.message}
@@ -351,13 +339,7 @@ export function Step1Repository({
                         {[
                           {
                             value: BotDeploymentType.INTERACTIONS_ENDPOINT,
-                            label: (
-                              <>
-                                Interactions Endpoint (
-                                <GlossaryTerm termKey="cloudflareWorkers">Cloudflare Workers</GlossaryTerm>
-                                )
-                              </>
-                            ),
+                            label: 'Interactions Endpoint (Cloudflare Workers)',
                             description: (
                               <div className="space-y-1.5">
                                 <div className="flex items-center gap-2">
@@ -366,10 +348,7 @@ export function Step1Repository({
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                                  <span>
-                                    <GlossaryTerm termKey="slashCommand">スラッシュコマンド</GlossaryTerm>
-                                    対応
-                                  </span>
+                                  <span>スラッシュコマンド対応</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <AlertCircle className="w-4 h-4 text-warning flex-shrink-0" />
@@ -378,8 +357,7 @@ export function Step1Repository({
                                 <div className="flex items-center gap-2">
                                   <Package className="w-4 h-4 text-info flex-shrink-0" />
                                   <span>
-                                    <GlossaryTerm termKey="deploy">デプロイ</GlossaryTerm>先:
-                                    <GlossaryTerm termKey="cloudflareWorkers">Cloudflare Workers</GlossaryTerm>
+                                    デプロイ先: <GlossaryTerm termKey="cloudflareWorkers">Cloudflare Workers</GlossaryTerm>
                                   </span>
                                 </div>
                               </div>
@@ -405,8 +383,7 @@ export function Step1Repository({
                                 <div className="flex items-center gap-2">
                                   <Package className="w-4 h-4 text-info flex-shrink-0" />
                                   <span>
-                                    <GlossaryTerm termKey="deploy">デプロイ</GlossaryTerm>先: Railway / Render /
-                                    <GlossaryTerm termKey="vps">VPS</GlossaryTerm>
+                                    デプロイ先: Railway / Render / <GlossaryTerm termKey="vps">VPS</GlossaryTerm>
                                   </span>
                                 </div>
                               </div>

@@ -642,7 +642,7 @@ export function Step3Commands({
               <FormField
                 label={
                   <>
-                    <GlossaryTerm termKey="apiEndpoint">APIエンドポイント</GlossaryTerm>
+                    <GlossaryTerm termKey="apiEndpoint">API</GlossaryTerm>エンドポイント
                   </>
                 }
                 description="ベースURLからの相対パス。変数は{変数名}で指定。例: weather?zip={zipcode}"
@@ -833,7 +833,7 @@ return {
                 />
               }
             >
-              ステップ 3: <GlossaryTerm termKey="slashCommand">スラッシュコマンド</GlossaryTerm>定義
+              ステップ 3: スラッシュコマンド定義
             </Header>
           }
         >

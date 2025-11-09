@@ -57,13 +57,7 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
       header={
         <Header
           variant="h2"
-          description={
-            <>
-              ボット
-              <GlossaryTerm termKey="template">テンプレート</GlossaryTerm>
-              から始めることで、素早くボットを作成できます。テンプレートをカスタマイズして、あなたのニーズに合わせたボットを作りましょう。
-            </>
-          }
+          description="ボットテンプレートから始めることで、素早くボットを作成できます。テンプレートをカスタマイズして、あなたのニーズに合わせたボットを作りましょう。"
         >
           <GlossaryTerm termKey="template">テンプレート</GlossaryTerm>を選択
         </Header>
@@ -111,16 +105,10 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {template.commands.length > 0 && (
-                        <Badge color="blue">
-                          {template.commands.length}{' '}
-                          <GlossaryTerm termKey="command">コマンド</GlossaryTerm>
-                        </Badge>
+                        <Badge color="blue">{template.commands.length} コマンド</Badge>
                       )}
                       {template.apiProfiles.length > 0 && (
-                        <Badge color="green">
-                          {template.apiProfiles.length}{' '}
-                          <GlossaryTerm termKey="api">API</GlossaryTerm>
-                        </Badge>
+                        <Badge color="green">{template.apiProfiles.length} API</Badge>
                       )}
                     </div>
                   </div>

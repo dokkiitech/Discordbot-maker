@@ -176,9 +176,7 @@ export function Step2ApiProfiles({
               variant="h2"
               description={
                 <>
-                  外部<GlossaryTerm termKey="api">API</GlossaryTerm>連携を使用する場合は、
-                  <GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>
-                  を追加してください
+                  外部<GlossaryTerm termKey="api">API</GlossaryTerm>連携を使用する場合は、APIプロファイルを追加してください
                 </>
               }
             >
@@ -197,11 +195,7 @@ export function Step2ApiProfiles({
                       control={control}
                       render={({ field }) => (
                         <FormField
-                          label={
-                            <>
-                              <GlossaryTerm termKey="apiProfile">プロファイル</GlossaryTerm>名
-                            </>
-                          }
+                          label="プロファイル名"
                           errorText={errors.name?.message}
                         >
                           <Input
@@ -250,8 +244,7 @@ export function Step2ApiProfiles({
                             <FormField
                               label={
                                 <>
-                                  <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/
-                                  <GlossaryTerm termKey="bearerToken">トークン</GlossaryTerm>
+                                  <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/トークン
                                 </>
                               }
                             >
@@ -303,8 +296,7 @@ export function Step2ApiProfiles({
                         認証: {authTypeOptions.find(o => o.value === profile.authType)?.label}
                       </Box>
                       <Box fontSize="body-s" color="text-status-info">
-                        <GlossaryTerm termKey="environmentVariable">環境変数</GlossaryTerm>:{' '}
-                        {profile.envVarKey}
+                        環境変数: {profile.envVarKey}
                       </Box>
                     </SpaceBetween>
                     <SpaceBetween direction="horizontal" size="xs">
@@ -328,20 +320,14 @@ export function Step2ApiProfiles({
             {isAdding && (
               <Container>
                 <SpaceBetween size="m">
-                  <Header variant="h3">
-                    新しい<GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>
-                  </Header>
+                  <Header variant="h3">新しいAPIプロファイル</Header>
 
                   <Controller
                     name="name"
                     control={control}
                     render={({ field }) => (
                       <FormField
-                        label={
-                          <>
-                            <GlossaryTerm termKey="apiProfile">プロファイル</GlossaryTerm>名
-                          </>
-                        }
+                        label="プロファイル名"
                         errorText={errors.name?.message}
                       >
                         <Input
@@ -390,8 +376,7 @@ export function Step2ApiProfiles({
                           <FormField
                             label={
                               <>
-                                <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/
-                                <GlossaryTerm termKey="bearerToken">トークン</GlossaryTerm>
+                                <GlossaryTerm termKey="apiKey">APIキー</GlossaryTerm>/トークン
                               </>
                             }
                           >
@@ -445,7 +430,7 @@ export function Step2ApiProfiles({
                 onClick={() => setIsAdding(true)}
                 fullWidth
               >
-                <GlossaryTerm termKey="apiProfile">APIプロファイル</GlossaryTerm>を追加
+                APIプロファイルを追加
               </Button>
             )}
           </SpaceBetween>
