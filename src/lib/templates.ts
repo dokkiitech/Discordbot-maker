@@ -26,10 +26,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 1. 犬の画像ボット（API認証不要）
   {
     id: 'dog-images',
-    name: '🐕 犬の画像ボット',
+    name: '犬の画像ボット',
     description: 'ランダムな犬の画像を表示するボット。API設定不要で即使用可能！',
     category: 'fun',
-    icon: '🐕',
+    icon: 'Dog',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'かわいい犬の画像を表示するボット',
@@ -70,10 +70,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 2. ジョークボット（API認証不要）
   {
     id: 'joke-bot',
-    name: '😂 ジョークボット',
+    name: 'ジョークボット',
     description: 'ランダムなジョークを提供するボット。API設定不要！',
     category: 'fun',
-    icon: '😂',
+    icon: 'Laugh',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'ジョークでみんなを笑顔にするボット',
@@ -140,10 +140,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 3. トリビアクイズボット（API認証不要）
   {
     id: 'trivia-quiz',
-    name: '❓ トリビアクイズボット',
+    name: 'トリビアクイズボット',
     description: 'ランダムなトリビアクイズを出題するボット。知識を試そう！',
     category: 'fun',
-    icon: '❓',
+    icon: 'HelpCircle',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'トリビアクイズを出題するボット',
@@ -199,10 +199,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 4. GitHubユーザー情報ボット（API認証不要）
   {
     id: 'github-info',
-    name: '🐙 GitHub情報ボット',
+    name: 'GitHub情報ボット',
     description: 'GitHubユーザーやリポジトリの情報を取得するボット。',
     category: 'info',
-    icon: '🐙',
+    icon: 'Github',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'GitHub情報を取得するボット',
@@ -270,10 +270,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 5. ゲームボット（API不要）
   {
     id: 'fun-games',
-    name: '🎮 ゲームボット',
+    name: 'ゲームボット',
     description: 'サイコロ、コイントス、じゃんけんなどのミニゲーム。API不要！',
     category: 'fun',
-    icon: '🎮',
+    icon: 'Gamepad2',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'ゲーム・エンターテイメントボット',
@@ -335,10 +335,10 @@ export const BOT_TEMPLATES: BotTemplate[] = [
   // 6. 挨拶ボット（API不要、シンプル）
   {
     id: 'simple-greeting',
-    name: '👋 シンプル挨拶ボット',
+    name: 'シンプル挨拶ボット',
     description: '基本的な挨拶コマンド。Discord Botの基礎を学ぶのに最適。',
     category: 'utility',
-    icon: '👋',
+    icon: 'HandOpen',
     defaultBotConfig: {
       deploymentType: BotDeploymentType.INTERACTIONS_ENDPOINT,
       description: 'シンプルな挨拶ボット',

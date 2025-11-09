@@ -9,12 +9,30 @@ import Box from '@cloudscape-design/components/box';
 import Grid from '@cloudscape-design/components/grid';
 import Cards from '@cloudscape-design/components/cards';
 import Badge from '@cloudscape-design/components/badge';
+import { BiSolidDog } from 'react-icons/bi';
+import { MdSentimentVerySatisfied } from 'react-icons/md';
+import { MdHelpOutline } from 'react-icons/md';
+import { FaGithub } from 'react-icons/fa';
+import { IoGameController } from 'react-icons/io5';
+import { MdWavingHand } from 'react-icons/md';
 import { BOT_TEMPLATES, BotTemplate } from '@/lib/templates';
 
 interface Step0TemplateSelectionProps {
   onTemplateSelect: (template: BotTemplate) => void;
   onSkip: () => void;
 }
+
+const getIconComponent = (iconName?: string): React.ComponentType<any> | null => {
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    'Dog': BiSolidDog,
+    'Laugh': MdSentimentVerySatisfied,
+    'HelpCircle': MdHelpOutline,
+    'Github': FaGithub,
+    'Gamepad2': IoGameController,
+    'HandOpen': MdWavingHand,
+  };
+  return iconName ? iconMap[iconName] || null : null;
+};
 
 export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0TemplateSelectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<BotTemplate | null>(null);
@@ -115,12 +133,15 @@ export function Step0TemplateSelection({ onTemplateSelect, onSkip }: Step0Templa
         {/* テンプレートカード */}
         <Cards
           cardDefinition={{
-            header: (template) => (
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{template.icon}</span>
-                <span className="font-bold text-lg">{template.name}</span>
-              </div>
-            ),
+            header: (template) => {
+              const IconComponent = getIconComponent(template.icon);
+              return (
+                <div className="flex items-center gap-2">
+                  {IconComponent && <IconComponent className="w-8 h-8" style={{ color: 'var(--primary)' }} />}
+                  <span className="font-bold text-lg">{template.name}</span>
+                </div>
+              );
+            },
             sections: [
               {
                 id: 'description',

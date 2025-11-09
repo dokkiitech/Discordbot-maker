@@ -2,6 +2,8 @@
 
 このプロジェクトはDiscord Botの作成を助けるためのwebアプリです。
 
+コミットは自分で行うため、claudecode側では必要ありません。
+
 私は主にUIデザインの面でこのプロジェクトに関わっています。
 Design Systemは[AppleHumanInterface](https://developer.apple.com/jp/design/human-interface-guidelines/)を参考にしています。
 ユーザーの見えるところには絵文字を配置せずにSymbolsを使うことでシンプルかつわかりやすくデザインしています。
